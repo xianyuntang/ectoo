@@ -1,101 +1,102 @@
-# VmMonitor
+# Ectoo
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+[![CI](https://github.com/xianyuntang/ectoo/actions/workflows/ci.yml/badge.svg)](https://github.com/xianyuntang/ectoo/actions/workflows/ci.yml)
+[![Docker Build](https://github.com/xianyuntang/ectoo/actions/workflows/docker-build.yml/badge.svg)](https://github.com/xianyuntang/ectoo/actions/workflows/docker-build.yml)
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+Ectoo - A Next.js application for monitoring and controlling AWS EC2 instances.
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/next?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+## Features
 
-## Run tasks
+- 🔐 Secure AWS credential management with browser-side encryption
+- 🌍 Multi-region support
+- 🚀 Real-time instance status monitoring
+- ⚡ Start/Stop instance controls
+- 🌓 Dark mode support
+- 📱 Responsive design (desktop-first)
 
-To run the dev server for your app, use:
+## Tech Stack
 
-```sh
-npx nx dev vm-monitor
+- Next.js 15 with App Router
+- TypeScript
+- Tailwind CSS v3
+- shadcn/ui components
+- AWS SDK for JavaScript
+- Zustand for state management
+- Tanstack Query for data fetching
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 22.14.0 or higher
+- npm or yarn
+- AWS IAM user with EC2 permissions
+
+### Development
+
+```bash
+# Install dependencies
+npm install
+
+# Run development server
+npx nx dev web
+
+# Build for production
+npx nx build web
+
+# Run linting
+npx nx lint web
 ```
 
-To create a production bundle:
+### Docker
 
-```sh
-npx nx build vm-monitor
+```bash
+# Build Docker image
+docker build -f apps/web/Dockerfile -t ectoo:latest .
+
+# Run with Docker
+docker run -p 3000:3000 ectoo:latest
+
+# Or use docker-compose
+cd apps/web
+docker-compose up -d
 ```
 
-To see all available targets to run for a project, run:
+## Deployment
 
-```sh
-npx nx show project vm-monitor
+### GitHub Container Registry
+
+Images are automatically built and pushed to GitHub Container Registry when pushing to the main branch:
+
+```bash
+docker pull ghcr.io/xianyuntang/ectoo:latest
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+## Required AWS Permissions
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+The IAM user must have the following EC2 permissions:
+- `ec2:DescribeInstances`
+- `ec2:StartInstances`
+- `ec2:StopInstances`
+- `ec2:DescribeRegions`
 
-## Add new projects
+## Security
 
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
+- AWS credentials are encrypted using Web Crypto API
+- Credentials are stored in browser's localStorage
+- No backend services or credential transmission
+- Recommended to use IAM users with minimal required permissions
 
-Use the plugin's generator to create new projects.
+## GitHub Actions
 
-To generate a new application, use:
+This project is configured with automated CI/CD:
 
-```sh
-npx nx g @nx/next:app demo
-```
+- **CI**: Runs linting, type checking, and builds on every push
+- **Docker Build**: Automatically builds and pushes to ghcr.io on push to main
+- **Release**: Creates releases and Docker images when version tags are created
 
-To generate a new library, use:
+See [.github/workflows/README.md](.github/workflows/README.md) for detailed information.
 
-```sh
-npx nx g @nx/react:lib mylib
-```
+## License
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
-
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Set up CI!
-
-### Step 1
-
-To connect to Nx Cloud, run the following command:
-
-```sh
-npx nx connect
-```
-
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
-
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-### Step 2
-
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
-```
-
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Install Nx Console
-
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
-
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Useful links
-
-Learn more:
-
-- [Learn more about this workspace setup](https://nx.dev/nx-api/next?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+This project is licensed under the MIT License.

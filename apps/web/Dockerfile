@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Copy package files from root and app
 COPY package*.json ./
-COPY apps/vm-monitor/package*.json ./apps/vm-monitor/
+COPY apps/web/package*.json ./apps/web/
 
 # Install dependencies
 RUN npm ci
@@ -18,10 +18,10 @@ COPY tsconfig.json ./
 COPY eslint.config.mjs ./
 
 # Copy app source code
-COPY apps/vm-monitor ./apps/vm-monitor
+COPY apps/web ./apps/web
 
 # Build the application
-RUN npx nx build vm-monitor
+RUN npx nx build web
 
 # Production stage
 FROM node:22.14.0-alpine AS runner
@@ -36,9 +36,9 @@ RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nextjs -u 1001
 
 # Copy built application
-COPY --from=builder --chown=nextjs:nodejs /app/apps/vm-monitor/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/apps/vm-monitor/.next/static ./apps/vm-monitor/.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/apps/vm-monitor/public ./apps/vm-monitor/public
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 
 # Set environment variables
 ENV NODE_ENV=production
@@ -53,4 +53,4 @@ EXPOSE 3000
 
 # Start the application with dumb-init
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "apps/vm-monitor/server.js"]
+CMD ["node", "apps/web/server.js"]

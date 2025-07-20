@@ -25,7 +25,7 @@ export default function Header() {
       <div className="container mx-auto flex h-16 items-center px-4">
         <div className="flex flex-1 items-center justify-between">
           <div className="flex items-center gap-4">
-            <h1 className="text-xl font-semibold">EC2 Monitor</h1>
+            <h1 className="text-xl font-semibold">Ectoo</h1>
             <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
               <span>Region:</span>
               <RegionSelector />

@@ -4,44 +4,44 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-AWS EC2 VM Monitor - A Next.js application for monitoring and controlling AWS EC2 instances. The application allows users to view, start, and stop EC2 instances across different AWS regions using their AWS credentials.
+Ectoo - A Next.js application for monitoring and controlling AWS EC2 instances. The application allows users to view, start, and stop EC2 instances across different AWS regions using their AWS credentials.
 
 ## Development Commands
 
 ### Run development server
 ```bash
-npx nx dev vm-monitor
+npx nx dev web
 ```
 
 ### Build for production
 ```bash
-npx nx build vm-monitor
+npx nx build web
 ```
 
 ### Start production server
 ```bash
-npx nx start vm-monitor
+npx nx start web
 ```
 
 ### Run linting
 ```bash
-npx nx lint vm-monitor
+npx nx lint web
 ```
 
 ### View all available commands
 ```bash
-npx nx show project vm-monitor
+npx nx show project web
 ```
 
 ## Project Architecture
 
 This is an Nx monorepo with the following structure:
 
-- `/apps/vm-monitor/` - Main Next.js application
+- `/apps/web/` - Main Next.js application
   - Uses Next.js 15 with App Router
   - TypeScript for type safety
   - Tailwind CSS for styling
-  - shadcn/ui components (to be integrated)
+  - shadcn/ui components
 
 The application follows a client-side architecture where:
 - AWS credentials are stored in encrypted localStorage
@@ -67,6 +67,6 @@ The IAM user must have these EC2 permissions:
 ## Important Files
 
 - `/spec.md` - Complete project specification
-- `/apps/vm-monitor/src/app/` - Next.js app directory
-- `/apps/vm-monitor/tailwind.config.js` - Tailwind configuration
+- `/apps/web/src/app/` - Next.js app directory
+- `/apps/web/tailwind.config.js` - Tailwind configuration
 - `/nx.json` - Nx workspace configuration

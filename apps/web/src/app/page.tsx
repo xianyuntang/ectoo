@@ -18,7 +18,7 @@ export default function Home() {
           <div className="w-full max-w-6xl mx-auto">
             <div className="text-center mb-12">
               <h1 className="text-5xl font-bold mb-4 tracking-tight">
-                AWS EC2 VM Monitor
+                Ectoo
               </h1>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                 Monitor and control your AWS EC2 instances across different regions with a modern, intuitive interface
