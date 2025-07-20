@@ -21,7 +21,12 @@ COPY eslint.config.mjs ./
 COPY apps/web ./apps/web
 
 # Build the application
-RUN npm run build
+ENV NX_DAEMON=false
+ENV NX_PARALLEL=1
+ENV NX_SKIP_NX_CACHE=true
+ENV NX_VERBOSE_LOGGING=false
+# Use direct build command to avoid nx daemon issues
+RUN cd apps/web && npm run build
 
 # Production stage
 FROM node:22.14.0-alpine AS runner
