@@ -62,7 +62,7 @@ const useStore = create<AppStore>()(
       }
     }),
     {
-      name: 'vm-monitor-storage',
+      name: 'ectoo-storage',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         credentials: state.credentials,

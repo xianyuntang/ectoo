@@ -2,7 +2,19 @@
   "name": "@ectoo/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "dev": "nx dev web",
+    "build": "nx build web",
+    "start": "nx start web",
+    "lint": "nx lint web",
+    "lint:fix": "nx lint web -- --fix",
+    "typecheck": "nx run-many -t typecheck --all || npx tsc --noEmit",
+    "test": "nx run-many -t test --all",
+    "clean": "nx reset && rm -rf dist .next",
+    "affected:lint": "nx affected --target=lint",
+    "affected:build": "nx affected --target=build",
+    "affected:test": "nx affected --target=test"
+  },
   "private": true,
   "dependencies": {
     "next": "~15.2.4",
@@ -43,5 +55,8 @@
   },
   "workspaces": [
     "apps/*"
-  ]
+  ],
+  "nx": {
+    "includedScripts": []
+  }
 }

@@ -1,4 +1,4 @@
-const ENCRYPTION_KEY = 'vm-monitor-encryption-key-2024'
+const ENCRYPTION_KEY = 'ectoo-encryption-key-2024'
 
 export async function encrypt(text: string): Promise<string> {
   const encoder = new TextEncoder()

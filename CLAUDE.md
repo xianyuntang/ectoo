@@ -10,27 +10,49 @@ Ectoo - A Next.js application for monitoring and controlling AWS EC2 instances. 
 
 ### Run development server
 ```bash
-npx nx dev web
+npm run dev
 ```
 
 ### Build for production
 ```bash
-npx nx build web
+npm run build
 ```
 
 ### Start production server
 ```bash
-npx nx start web
+npm start
 ```
 
 ### Run linting
 ```bash
-npx nx lint web
+npm run lint          # Lint all projects
+npm run lint:fix      # Lint with auto-fix
+```
+
+### Run type checking
+```bash
+npm run typecheck
+```
+
+### Run tests
+```bash
+npm test
 ```
 
 ### View all available commands
 ```bash
 npx nx show project web
+```
+
+### Additional useful commands
+```bash
+# Clean build artifacts and cache
+npm run clean
+
+# Run commands only on affected projects
+npm run affected:lint
+npm run affected:build
+npm run affected:test
 ```
 
 ## Project Architecture

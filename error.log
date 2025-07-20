@@ -1,3 +1,0 @@
-
-致命錯誤: 不是一個 git 版本庫（或者直至掛載點 /Volumes 的任何父目錄）
-停止在檔案系統邊界（未設定 GIT_DISCOVERY_ACROSS_FILESYSTEM）。

@@ -32,16 +32,16 @@ jobs:
         run: npm ci
 
       - name: Run linting
-        run: npx nx lint web
+        run: npm run lint
 
       - name: Check TypeScript
-        run: npx nx run web:typecheck || npx tsc --noEmit
+        run: npm run typecheck
 
       - name: Build application
-        run: npx nx build web
+        run: npm run build
 
       - name: Run tests
-        run: npx nx test web || echo "No tests configured yet"
+        run: npm test || echo "No tests configured yet"
 
   docker-build-test:
     needs: lint-and-test

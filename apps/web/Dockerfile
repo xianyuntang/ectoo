@@ -21,7 +21,7 @@ COPY eslint.config.mjs ./
 COPY apps/web ./apps/web
 
 # Build the application
-RUN npx nx build web
+RUN npm run build
 
 # Production stage
 FROM node:22.14.0-alpine AS runner
