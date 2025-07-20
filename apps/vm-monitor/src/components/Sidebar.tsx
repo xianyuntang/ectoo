@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { 
   Cloud, 
@@ -11,7 +11,6 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  User,
   CreditCard,
   BarChart3
 } from 'lucide-react'

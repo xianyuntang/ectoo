@@ -23,7 +23,7 @@ const DEFAULT_REGIONS = [
 export default function RegionSelector() {
   const { credentials, selectedRegion, setSelectedRegion } = useStore()
   
-  const { data: regions, isLoading, error } = useQuery({
+  const { data: regions, isLoading } = useQuery({
     queryKey: ['regions'],
     queryFn: async () => {
       if (!credentials) throw new Error('No credentials')

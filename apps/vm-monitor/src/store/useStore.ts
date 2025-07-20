@@ -40,7 +40,7 @@ const useStore = create<AppStore>()(
             },
             error: null
           })
-        } catch (error) {
+        } catch {
           set({ error: 'Failed to encrypt credentials' })
         }
       },

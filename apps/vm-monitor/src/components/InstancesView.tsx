@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 import { 
@@ -25,7 +24,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { AWSService, EC2Instance } from '@/lib/aws-service'
+import { AWSService } from '@/lib/aws-service'
 import useStore, { getDecryptedCredentials } from '@/store/useStore'
 import { cn } from '@/lib/utils'
 

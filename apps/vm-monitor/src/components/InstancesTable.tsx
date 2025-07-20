@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import {
   Table,
   TableBody,
@@ -15,7 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { Play, Square, RefreshCw } from 'lucide-react'
-import { AWSService, EC2Instance } from '@/lib/aws-service'
+import { AWSService } from '@/lib/aws-service'
 import useStore, { getDecryptedCredentials } from '@/store/useStore'
 import { cn } from '@/lib/utils'
 
@@ -35,7 +35,6 @@ const getStatusColor = (status: string) => {
 
 export default function InstancesTable() {
   const { credentials, selectedRegion } = useStore()
-  const queryClient = useQueryClient()
   const [awsService, setAwsService] = useState<AWSService | null>(null)
   
   const { data: instances, isLoading, refetch, isRefetching } = useQuery({

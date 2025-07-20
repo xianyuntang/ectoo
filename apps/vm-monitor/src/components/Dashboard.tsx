@@ -1,11 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Toaster } from '@/components/ui/sonner'
 import Sidebar from './Sidebar'
 import Header from './Header'
 import InstancesView from './InstancesView'
-import useStore from '@/store/useStore'
 import { cn } from '@/lib/utils'
 
 export default function Dashboard() {
