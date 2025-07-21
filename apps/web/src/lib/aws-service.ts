@@ -78,7 +78,7 @@ export class AWSService {
 
   constructor(
     credentials: { accessKeyId: string; secretAccessKey: string },
-    region: string,
+    region: string
   ) {
     AWS.config.update({
       accessKeyId: credentials.accessKeyId,
@@ -190,7 +190,7 @@ export class AWSService {
 
   async modifyInstanceType(
     instanceId: string,
-    instanceType: string,
+    instanceType: string
   ): Promise<void> {
     if (!this.ec2) throw new Error('EC2 client not initialized');
 
@@ -252,7 +252,7 @@ export class AWSService {
     // Validate instance ID format
     if (!instanceId || !instanceId.startsWith('i-')) {
       throw new Error(
-        `Invalid instance ID format for Session Manager: ${instanceId}. EC2 instance IDs should start with 'i-'`,
+        `Invalid instance ID format for Session Manager: ${instanceId}. EC2 instance IDs should start with 'i-'`
       );
     }
 
@@ -325,7 +325,7 @@ export class AWSService {
 
   async getInstanceMetrics(
     instanceId: string,
-    period: number = 3600,
+    period = 3600
   ): Promise<InstanceMetrics> {
     if (!this.cloudwatch) throw new Error('CloudWatch client not initialized');
 
@@ -402,12 +402,12 @@ export class AWSService {
 
       // Transform the data
       const transformDatapoints = (
-        data: AWS.CloudWatch.GetMetricStatisticsOutput,
+        data: AWS.CloudWatch.GetMetricStatisticsOutput
       ): MetricDataPoint[] => {
         return (data.Datapoints || [])
           .sort(
             (a, b) =>
-              (a.Timestamp?.getTime() || 0) - (b.Timestamp?.getTime() || 0),
+              (a.Timestamp?.getTime() || 0) - (b.Timestamp?.getTime() || 0)
           )
           .map((point) => ({
             timestamp: point.Timestamp || new Date(),
@@ -435,7 +435,7 @@ export class AWSService {
     // Validate instance ID format
     if (!instanceId.startsWith('i-')) {
       throw new Error(
-        `Invalid instance ID format: ${instanceId}. EC2 instance IDs should start with 'i-'`,
+        `Invalid instance ID format: ${instanceId}. EC2 instance IDs should start with 'i-'`
       );
     }
 
