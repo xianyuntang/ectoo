@@ -9,7 +9,7 @@ COPY package*.json ./
 COPY apps/web/package*.json ./apps/web/
 
 # Install dependencies
-RUN npm ci
+RUN npm install
 
 # Copy nx workspace files
 COPY nx.json ./

@@ -37,7 +37,7 @@ interface InstanceDetailsDialogProps {
 
 interface DetailRowProps {
   label: string
-  value?: string | null
+  value?: string | React.ReactNode | null
   icon?: React.ReactNode
 }
 
@@ -49,7 +49,7 @@ function DetailRow({ label, value, icon }: DetailRowProps) {
         <span className="text-sm">{label}</span>
       </div>
       <span className="text-sm font-medium">
-        {value || <span className="text-muted-foreground">-</span>}
+        {value ?? <span className="text-muted-foreground">-</span>}
       </span>
     </div>
   )
