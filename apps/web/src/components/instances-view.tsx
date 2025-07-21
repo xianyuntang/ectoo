@@ -31,6 +31,7 @@ import useStore, { getDecryptedCredentials } from '@/store/useStore';
 import { cn } from '@/lib/utils';
 import ModifyInstanceTypeDialog from './modify-instance-type-dialog';
 import InstanceDetailsDialog from './instance-details-dialog';
+import ConfirmationDialog from './confirmation-dialog';
 
 const getStatusConfig = (status: string) => {
   switch (status) {
@@ -80,6 +81,10 @@ export default function InstancesView() {
   );
   const [isModifyTypeDialogOpen, setIsModifyTypeDialogOpen] = useState(false);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<{
+    type: 'start' | 'stop' | null;
+    instanceId: string | null;
+  }>({ type: null, instanceId: null });
   const queryClient = useQueryClient();
 
   const {
@@ -110,7 +115,7 @@ export default function InstancesView() {
     },
     onSuccess: () => {
       toast.success('Instance start command sent');
-      setTimeout(() => refetch(), 2000);
+      refetch(); // Refetch immediately
     },
     onError: (error) => {
       toast.error(`Start failed: ${error.message}`);
@@ -124,7 +129,7 @@ export default function InstancesView() {
     },
     onSuccess: () => {
       toast.success('Instance stop command sent');
-      setTimeout(() => refetch(), 2000);
+      refetch(); // Refetch immediately
     },
     onError: (error) => {
       toast.error(`Stop failed: ${error.message}`);
@@ -170,6 +175,25 @@ export default function InstancesView() {
   const handleFetchDetails = async (instanceId: string) => {
     if (!awsService) throw new Error('AWS service not initialized');
     return awsService.getInstanceDetails(instanceId);
+  };
+
+  const handleStartClick = (instanceId: string) => {
+    setConfirmAction({ type: 'start', instanceId });
+  };
+
+  const handleStopClick = (instanceId: string) => {
+    setConfirmAction({ type: 'stop', instanceId });
+  };
+
+  const handleConfirmAction = () => {
+    if (confirmAction.type && confirmAction.instanceId) {
+      if (confirmAction.type === 'start') {
+        startInstanceMutation.mutate(confirmAction.instanceId);
+      } else if (confirmAction.type === 'stop') {
+        stopInstanceMutation.mutate(confirmAction.instanceId);
+      }
+    }
+    setConfirmAction({ type: null, instanceId: null });
   };
 
   // Statistics
@@ -412,9 +436,7 @@ export default function InstancesView() {
                       <Button
                         size="sm"
                         className="flex-1 bg-green-600 hover:bg-green-700"
-                        onClick={() =>
-                          startInstanceMutation.mutate(instance.instanceId)
-                        }
+                        onClick={() => handleStartClick(instance.instanceId)}
                         disabled={startInstanceMutation.isPending}
                       >
                         <Play className="h-4 w-4 mr-2" />
@@ -426,9 +448,7 @@ export default function InstancesView() {
                         size="sm"
                         variant="destructive"
                         className="flex-1"
-                        onClick={() =>
-                          stopInstanceMutation.mutate(instance.instanceId)
-                        }
+                        onClick={() => handleStopClick(instance.instanceId)}
                         disabled={stopInstanceMutation.isPending}
                       >
                         <Square className="h-4 w-4 mr-2" />
@@ -468,6 +488,38 @@ export default function InstancesView() {
           setSelectedInstance(null);
         }}
         onFetchDetails={handleFetchDetails}
+      />
+
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        open={confirmAction.type !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setConfirmAction({ type: null, instanceId: null });
+          }
+        }}
+        title={
+          confirmAction.type === 'start'
+            ? 'Start Instance'
+            : confirmAction.type === 'stop'
+            ? 'Stop Instance'
+            : ''
+        }
+        description={
+          confirmAction.type === 'start'
+            ? `Are you sure you want to start instance ${confirmAction.instanceId}? This will incur AWS charges.`
+            : confirmAction.type === 'stop'
+            ? `Are you sure you want to stop instance ${confirmAction.instanceId}? Any unsaved work will be lost.`
+            : ''
+        }
+        confirmText={confirmAction.type === 'start' ? 'Start' : 'Stop'}
+        variant={confirmAction.type === 'stop' ? 'destructive' : 'default'}
+        onConfirm={handleConfirmAction}
+        isLoading={
+          confirmAction.type === 'start'
+            ? startInstanceMutation.isPending
+            : stopInstanceMutation.isPending
+        }
       />
     </div>
   );

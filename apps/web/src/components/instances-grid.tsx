@@ -15,6 +15,7 @@ import ModifyInstanceTypeDialog from './modify-instance-type-dialog';
 import TerminalDialog from './terminal-dialog';
 import MetricsDialog from './metrics-dialog';
 import InstanceDetailsDialog from './instance-details-dialog';
+import ConfirmationDialog from './confirmation-dialog';
 
 export default function InstancesGrid() {
   const { credentials, selectedRegion } = useStore();
@@ -26,6 +27,10 @@ export default function InstancesGrid() {
   const [isTerminalDialogOpen, setIsTerminalDialogOpen] = useState(false);
   const [isMetricsDialogOpen, setIsMetricsDialogOpen] = useState(false);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<{
+    type: 'start' | 'stop' | null;
+    instanceId: string | null;
+  }>({ type: null, instanceId: null });
   const queryClient = useQueryClient();
 
   const {
@@ -56,7 +61,7 @@ export default function InstancesGrid() {
     },
     onSuccess: () => {
       toast.success('Instance start command sent');
-      setTimeout(() => refetch(), 2000);
+      refetch(); // Refetch immediately
     },
     onError: (error) => {
       toast.error(`Failed to start instance: ${error.message}`);
@@ -70,7 +75,7 @@ export default function InstancesGrid() {
     },
     onSuccess: () => {
       toast.success('Instance stop command sent');
-      setTimeout(() => refetch(), 2000);
+      refetch(); // Refetch immediately
     },
     onError: (error) => {
       toast.error(`Failed to stop instance: ${error.message}`);
@@ -144,6 +149,25 @@ export default function InstancesGrid() {
   const handleFetchDetails = async (instanceId: string) => {
     if (!awsService) throw new Error('AWS service not initialized');
     return awsService.getInstanceDetails(instanceId);
+  };
+
+  const handleStartClick = (instanceId: string) => {
+    setConfirmAction({ type: 'start', instanceId });
+  };
+
+  const handleStopClick = (instanceId: string) => {
+    setConfirmAction({ type: 'stop', instanceId });
+  };
+
+  const handleConfirmAction = () => {
+    if (confirmAction.type && confirmAction.instanceId) {
+      if (confirmAction.type === 'start') {
+        startInstanceMutation.mutate(confirmAction.instanceId);
+      } else if (confirmAction.type === 'stop') {
+        stopInstanceMutation.mutate(confirmAction.instanceId);
+      }
+    }
+    setConfirmAction({ type: null, instanceId: null });
   };
 
   // Stats
@@ -254,8 +278,8 @@ export default function InstancesGrid() {
             <InstanceCard
               key={instance.instanceId}
               instance={instance}
-              onStart={startInstanceMutation.mutate}
-              onStop={stopInstanceMutation.mutate}
+              onStart={handleStartClick}
+              onStop={handleStopClick}
               onModifyType={handleOpenModifyDialog}
               onConnectTerminal={handleOpenTerminal}
               onViewMetrics={handleOpenMetrics}
@@ -307,6 +331,38 @@ export default function InstancesGrid() {
           setSelectedInstance(null);
         }}
         onFetchDetails={handleFetchDetails}
+      />
+
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        open={confirmAction.type !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setConfirmAction({ type: null, instanceId: null });
+          }
+        }}
+        title={
+          confirmAction.type === 'start'
+            ? 'Start Instance'
+            : confirmAction.type === 'stop'
+            ? 'Stop Instance'
+            : ''
+        }
+        description={
+          confirmAction.type === 'start'
+            ? `Are you sure you want to start instance ${confirmAction.instanceId}? This will incur AWS charges.`
+            : confirmAction.type === 'stop'
+            ? `Are you sure you want to stop instance ${confirmAction.instanceId}? Any unsaved work will be lost.`
+            : ''
+        }
+        confirmText={confirmAction.type === 'start' ? 'Start' : 'Stop'}
+        variant={confirmAction.type === 'stop' ? 'destructive' : 'default'}
+        onConfirm={handleConfirmAction}
+        isLoading={
+          confirmAction.type === 'start'
+            ? startInstanceMutation.isPending
+            : stopInstanceMutation.isPending
+        }
       />
     </div>
   );
