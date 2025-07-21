@@ -1,9 +1,9 @@
 'use client'
 
 import useStore from '@/store/useStore'
-import CredentialsForm from '@/components/CredentialsForm'
-import InstancesGrid from '@/components/InstancesGrid'
-import Header from '@/components/Header'
+import CredentialsForm from '@/components/credentials-form'
+import InstancesView from '@/components/instances-view'
+import Header from '@/components/header'
 import { Toaster } from '@/components/ui/sonner'
 
 export default function Home() {
@@ -29,7 +29,7 @@ export default function Home() {
         </div>
       ) : (
         <main className="container mx-auto py-8 px-4">
-          <InstancesGrid />
+          <InstancesView />
         </main>
       )}
       

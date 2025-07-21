@@ -85,6 +85,8 @@ The IAM user must have these EC2 permissions:
 - ec2:StartInstances
 - ec2:StopInstances
 - ec2:DescribeRegions
+- ec2:ModifyInstanceAttribute
+- ec2:DescribeInstanceTypes
 
 ## Important Files
 

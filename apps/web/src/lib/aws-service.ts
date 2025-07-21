@@ -113,6 +113,50 @@ export class AWSService {
     }
   }
   
+  async modifyInstanceType(instanceId: string, instanceType: string): Promise<void> {
+    if (!this.ec2) throw new Error('EC2 client not initialized')
+    
+    try {
+      await this.ec2.modifyInstanceAttribute({
+        InstanceId: instanceId,
+        InstanceType: {
+          Value: instanceType
+        }
+      }).promise()
+    } catch (error) {
+      console.error('Error modifying instance type:', error)
+      throw error
+    }
+  }
+  
+  async getInstanceTypes(): Promise<AWS.EC2.InstanceTypeInfo[]> {
+    if (!this.ec2) throw new Error('EC2 client not initialized')
+    
+    try {
+      const allTypes: AWS.EC2.InstanceTypeInfo[] = []
+      let nextToken: string | undefined
+      
+      // 分頁獲取所有實例類型
+      do {
+        const response = await this.ec2.describeInstanceTypes({
+          NextToken: nextToken,
+          MaxResults: 100
+        }).promise()
+        
+        if (response.InstanceTypes) {
+          allTypes.push(...response.InstanceTypes)
+        }
+        
+        nextToken = response.NextToken
+      } while (nextToken)
+      
+      return allTypes
+    } catch (error) {
+      console.error('Error fetching instance types:', error)
+      throw error
+    }
+  }
+  
   changeRegion(region: string): void {
     AWS.config.update({ region })
     this.ec2 = new AWS.EC2()

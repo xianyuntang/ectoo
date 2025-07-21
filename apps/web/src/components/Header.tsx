@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Settings, LogOut } from 'lucide-react'
-import RegionSelector from './RegionSelector'
+import RegionSelector from './region-selector'
 import { ThemeToggle } from './theme-toggle'
 import useStore from '@/store/useStore'
 

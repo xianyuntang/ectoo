@@ -10,7 +10,7 @@ import { RefreshCw, Server, Activity, Square as StopIcon } from 'lucide-react'
 import { AWSService } from '@/lib/aws-service'
 import useStore, { getDecryptedCredentials } from '@/store/useStore'
 import { cn } from '@/lib/utils'
-import InstanceCard from './InstanceCard'
+import InstanceCard from './instance-card'
 
 export default function InstancesGrid() {
   const { credentials, selectedRegion } = useStore()

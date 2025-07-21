@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -16,17 +16,20 @@ import {
   MoreVertical,
   Activity,
   Cpu,
-  HardDrive
+  HardDrive,
+  Settings2
 } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
-import { AWSService } from '@/lib/aws-service'
+import { AWSService, EC2Instance } from '@/lib/aws-service'
 import useStore, { getDecryptedCredentials } from '@/store/useStore'
 import { cn } from '@/lib/utils'
+import ModifyInstanceTypeDialog from './modify-instance-type-dialog'
 
 const getStatusConfig = (status: string) => {
   switch (status) {
@@ -46,6 +49,9 @@ const getStatusConfig = (status: string) => {
 export default function InstancesView() {
   const { credentials, selectedRegion } = useStore()
   const [awsService, setAwsService] = useState<AWSService | null>(null)
+  const [selectedInstance, setSelectedInstance] = useState<EC2Instance | null>(null)
+  const [isModifyTypeDialogOpen, setIsModifyTypeDialogOpen] = useState(false)
+  const queryClient = useQueryClient()
   
   const { data: instances, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['instances', selectedRegion],
@@ -90,6 +96,34 @@ export default function InstancesView() {
       toast.error(`停止失敗: ${error.message}`)
     },
   })
+  
+  const modifyInstanceTypeMutation = useMutation({
+    mutationFn: async ({ instanceId, instanceType }: { instanceId: string; instanceType: string }) => {
+      if (!awsService) throw new Error('AWS service not initialized')
+      await awsService.modifyInstanceType(instanceId, instanceType)
+    },
+    onSuccess: () => {
+      toast.success('實例類型修改成功')
+      setIsModifyTypeDialogOpen(false)
+      setSelectedInstance(null)
+      // 立即刷新數據
+      queryClient.invalidateQueries({ queryKey: ['instances', selectedRegion] })
+    },
+    onError: (error: Error & { code?: string }) => {
+      // 處理特定錯誤
+      if (error.code === 'IncorrectInstanceState') {
+        toast.error('實例必須處於停止狀態才能修改類型')
+      } else if (error.code === 'InvalidInstanceAttributeValue') {
+        toast.error('無效的實例類型')
+      } else {
+        toast.error(`修改失敗: ${error.message}`)
+      }
+    },
+  })
+  
+  const handleModifyInstanceType = (instanceId: string, newType: string) => {
+    modifyInstanceTypeMutation.mutate({ instanceId, instanceType: newType })
+  }
   
   // 統計數據
   const stats = {
@@ -227,6 +261,19 @@ export default function InstancesView() {
                         <DropdownMenuItem>查看詳情</DropdownMenuItem>
                         <DropdownMenuItem>監控指標</DropdownMenuItem>
                         <DropdownMenuItem>連接終端</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          onClick={() => {
+                            console.log('Modify instance type clicked', instance)
+                            setSelectedInstance(instance)
+                            setIsModifyTypeDialogOpen(true)
+                          }}
+                          disabled={instance.state !== 'stopped'}
+                        >
+                          <Settings2 className="h-4 w-4 mr-2" />
+                          修改實例類型
+                          {instance.state !== 'stopped' && ' (需要先停止實例)'}
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -314,6 +361,15 @@ export default function InstancesView() {
           })
         )}
       </div>
+      
+      {/* 修改實例類型對話框 */}
+      <ModifyInstanceTypeDialog
+        open={isModifyTypeDialogOpen}
+        onOpenChange={setIsModifyTypeDialogOpen}
+        instance={selectedInstance}
+        onConfirm={handleModifyInstanceType}
+        isModifying={modifyInstanceTypeMutation.isPending}
+      />
     </div>
   )
 }
