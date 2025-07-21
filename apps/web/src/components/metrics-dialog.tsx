@@ -51,7 +51,7 @@ export default function MetricsDialog({ instance, isOpen, onClose, onFetchMetric
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[1600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5" />
@@ -62,7 +62,7 @@ export default function MetricsDialog({ instance, isOpen, onClose, onFetchMetric
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className="space-y-8 py-6">
           <div className="flex items-center justify-between">
             <Select
               value={selectedPeriod.toString()}
@@ -91,13 +91,13 @@ export default function MetricsDialog({ instance, isOpen, onClose, onFetchMetric
           )}
 
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-[280px]" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <Skeleton key={i} className="h-[350px]" />
               ))}
             </div>
           ) : metrics ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <MetricsChart
                 title="CPU Utilization"
                 description="Average CPU usage percentage"

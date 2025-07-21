@@ -87,7 +87,7 @@ export default function InstanceDetailsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[1400px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Server className="h-5 w-5" />
@@ -113,7 +113,7 @@ export default function InstanceDetailsDialog({
             <Skeleton className="h-[200px]" />
           </div>
         ) : details ? (
-          <Tabs defaultValue="general" className="mt-4">
+          <Tabs defaultValue="general" className="mt-6">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="network">Network</TabsTrigger>
@@ -121,8 +121,8 @@ export default function InstanceDetailsDialog({
               <TabsTrigger value="tags">Tags & Security</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="general" className="space-y-4">
-              <div className="rounded-lg border p-4">
+            <TabsContent value="general" className="space-y-6 mt-6">
+              <div className="rounded-lg border p-6">
                 <h3 className="font-semibold mb-4 flex items-center gap-2">
                   <Server className="h-4 w-4" />
                   Instance Information
@@ -160,7 +160,7 @@ export default function InstanceDetailsDialog({
               </div>
 
               {details.cpuOptions && (details.cpuOptions.coreCount || details.cpuOptions.threadsPerCore) && (
-                <div className="rounded-lg border p-4">
+                <div className="rounded-lg border p-6">
                   <h3 className="font-semibold mb-4 flex items-center gap-2">
                     <Cpu className="h-4 w-4" />
                     CPU Options
@@ -173,8 +173,8 @@ export default function InstanceDetailsDialog({
               )}
             </TabsContent>
             
-            <TabsContent value="network" className="space-y-4">
-              <div className="rounded-lg border p-4">
+            <TabsContent value="network" className="space-y-6 mt-6">
+              <div className="rounded-lg border p-6">
                 <h3 className="font-semibold mb-4 flex items-center gap-2">
                   <Network className="h-4 w-4" />
                   Network Configuration
@@ -190,8 +190,8 @@ export default function InstanceDetailsDialog({
               </div>
             </TabsContent>
             
-            <TabsContent value="storage" className="space-y-4">
-              <div className="rounded-lg border p-4">
+            <TabsContent value="storage" className="space-y-6 mt-6">
+              <div className="rounded-lg border p-6">
                 <h3 className="font-semibold mb-4 flex items-center gap-2">
                   <HardDrive className="h-4 w-4" />
                   Storage Devices
@@ -203,7 +203,7 @@ export default function InstanceDetailsDialog({
               </div>
 
               {details.blockDeviceMappings && details.blockDeviceMappings.length > 0 && (
-                <div className="rounded-lg border p-4">
+                <div className="rounded-lg border p-6">
                   <h3 className="font-semibold mb-4">Block Device Mappings</h3>
                   <div className="space-y-4">
                     {details.blockDeviceMappings.map((device, index) => (
@@ -228,9 +228,9 @@ export default function InstanceDetailsDialog({
               )}
             </TabsContent>
             
-            <TabsContent value="tags" className="space-y-4">
+            <TabsContent value="tags" className="space-y-6 mt-6">
               {details.tags && details.tags.length > 0 && (
-                <div className="rounded-lg border p-4">
+                <div className="rounded-lg border p-6">
                   <h3 className="font-semibold mb-4 flex items-center gap-2">
                     <Tag className="h-4 w-4" />
                     Tags
@@ -247,7 +247,7 @@ export default function InstanceDetailsDialog({
               )}
 
               {details.securityGroups && details.securityGroups.length > 0 && (
-                <div className="rounded-lg border p-4">
+                <div className="rounded-lg border p-6">
                   <h3 className="font-semibold mb-4 flex items-center gap-2">
                     <Shield className="h-4 w-4" />
                     Security Groups
