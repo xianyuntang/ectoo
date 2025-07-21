@@ -2,7 +2,7 @@ import './global.css';
 import { Providers } from '@/components/providers'
 
 export const metadata = {
-  title: 'Ectoo',
+  title: 'ECToo',
   description: 'Monitor and control your AWS EC2 instances',
 };
 

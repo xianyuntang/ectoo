@@ -1,9 +1,9 @@
-# Ectoo
+# ECToo
 
 [![CI](https://github.com/xianyuntang/ectoo/actions/workflows/ci.yml/badge.svg)](https://github.com/xianyuntang/ectoo/actions/workflows/ci.yml)
 [![Docker Build](https://github.com/xianyuntang/ectoo/actions/workflows/docker-build.yml/badge.svg)](https://github.com/xianyuntang/ectoo/actions/workflows/docker-build.yml)
 
-Ectoo - A Next.js application for monitoring and controlling AWS EC2 instances.
+ECToo - A Next.js application for monitoring and controlling AWS EC2 instances.
 
 ## Features
 

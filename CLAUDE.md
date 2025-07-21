@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Ectoo - A Next.js application for monitoring and controlling AWS EC2 instances. The application allows users to view, start, and stop EC2 instances across different AWS regions using their AWS credentials.
+ECToo - A Next.js application for monitoring and controlling AWS EC2 instances. The application allows users to view, start, and stop EC2 instances across different AWS regions using their AWS credentials.
 
 ## Development Commands
 
