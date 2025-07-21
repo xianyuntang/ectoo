@@ -1,57 +1,79 @@
-'use client'
+'use client';
 
-import { useMemo } from 'react'
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from 'recharts'
-import { MetricDataPoint } from '@/lib/aws-service'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { formatBytes, formatNumber } from '@/lib/utils'
+import { useMemo } from 'react';
+import {
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from 'recharts';
+import { MetricDataPoint } from '@/lib/aws-service';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { formatBytes, formatNumber } from '@/lib/utils';
 
 interface MetricsChartProps {
-  title: string
-  description?: string
-  data: MetricDataPoint[]
-  color?: string
-  formatter?: (value: number) => string
-  unit?: string
+  title: string;
+  description?: string;
+  data: MetricDataPoint[];
+  color?: string;
+  formatter?: (value: number) => string;
+  unit?: string;
 }
 
-export default function MetricsChart({ 
-  title, 
-  description, 
-  data, 
+export default function MetricsChart({
+  title,
+  description,
+  data,
   color = '#8884d8',
   formatter,
-  unit
+  unit,
 }: MetricsChartProps) {
   const chartData = useMemo(() => {
-    return data.map(point => ({
-      time: point.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    return data.map((point) => ({
+      time: point.timestamp.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
       value: point.value,
-      timestamp: point.timestamp
-    }))
-  }, [data])
+      timestamp: point.timestamp,
+    }));
+  }, [data]);
 
   const formatValue = (value: number) => {
-    if (formatter) return formatter(value)
-    if (unit === 'Percent') return `${formatNumber(value)}%`
-    if (unit === 'Bytes') return formatBytes(value)
-    return formatNumber(value)
-  }
+    if (formatter) return formatter(value);
+    if (unit === 'Percent') return `${formatNumber(value)}%`;
+    if (unit === 'Bytes') return formatBytes(value);
+    return formatNumber(value);
+  };
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload[0]) {
-      const data = payload[0].payload
+      const data = payload[0].payload;
       return (
         <div className="bg-background border rounded-lg shadow-lg p-3">
-          <p className="text-sm font-medium">{data.timestamp.toLocaleString()}</p>
+          <p className="text-sm font-medium">
+            {data.timestamp.toLocaleString()}
+          </p>
           <p className="text-sm text-muted-foreground">
-            {title}: <span className="font-medium text-foreground">{formatValue(data.value)}</span>
+            {title}:{' '}
+            <span className="font-medium text-foreground">
+              {formatValue(data.value)}
+            </span>
           </p>
         </div>
-      )
+      );
     }
-    return null
-  }
+    return null;
+  };
 
   if (data.length === 0) {
     return (
@@ -66,7 +88,7 @@ export default function MetricsChart({
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -78,23 +100,26 @@ export default function MetricsChart({
       <CardContent>
         <div className="h-[280px]">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+            <LineChart
+              data={chartData}
+              margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+            >
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis 
-                dataKey="time" 
+              <XAxis
+                dataKey="time"
                 className="text-xs"
                 tick={{ fill: 'currentColor' }}
               />
-              <YAxis 
+              <YAxis
                 className="text-xs"
                 tick={{ fill: 'currentColor' }}
                 tickFormatter={formatValue}
               />
               <Tooltip content={<CustomTooltip />} />
-              <Line 
-                type="monotone" 
-                dataKey="value" 
-                stroke={color} 
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke={color}
                 strokeWidth={2}
                 dot={false}
               />
@@ -103,5 +128,5 @@ export default function MetricsChart({
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

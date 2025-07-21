@@ -1,56 +1,74 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
+import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Terminal, ExternalLink, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
-import { EC2Instance } from '@/lib/aws-service'
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Terminal,
+  ExternalLink,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+} from 'lucide-react';
+import { EC2Instance } from '@/lib/aws-service';
 
 interface TerminalDialogProps {
-  instance: EC2Instance | null
-  isOpen: boolean
-  onClose: () => void
-  onConnect: (instanceId: string) => Promise<{ url: string; sessionId: string }>
+  instance: EC2Instance | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onConnect: (
+    instanceId: string,
+  ) => Promise<{ url: string; sessionId: string }>;
 }
 
-export default function TerminalDialog({ instance, isOpen, onClose, onConnect }: TerminalDialogProps) {
-  const [isConnecting, setIsConnecting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [sessionInfo, setSessionInfo] = useState<{ url: string; sessionId: string } | null>(null)
+export default function TerminalDialog({
+  instance,
+  isOpen,
+  onClose,
+  onConnect,
+}: TerminalDialogProps) {
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [sessionInfo, setSessionInfo] = useState<{
+    url: string;
+    sessionId: string;
+  } | null>(null);
 
   const handleConnect = async () => {
-    if (!instance) return
+    if (!instance) return;
 
-    setIsConnecting(true)
-    setError(null)
+    setIsConnecting(true);
+    setError(null);
 
     try {
-      const session = await onConnect(instance.instanceId)
-      setSessionInfo(session)
-      
+      const session = await onConnect(instance.instanceId);
+      setSessionInfo(session);
+
       // Open Session Manager in a new tab
-      window.open(session.url, '_blank', 'noopener,noreferrer')
+      window.open(session.url, '_blank', 'noopener,noreferrer');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to connect to instance')
+      setError(
+        err instanceof Error ? err.message : 'Failed to connect to instance',
+      );
     } finally {
-      setIsConnecting(false)
+      setIsConnecting(false);
     }
-  }
+  };
 
   const handleClose = () => {
-    setError(null)
-    setSessionInfo(null)
-    onClose()
-  }
+    setError(null);
+    setSessionInfo(null);
+    onClose();
+  };
 
-  if (!instance) return null
+  if (!instance) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -61,7 +79,8 @@ export default function TerminalDialog({ instance, isOpen, onClose, onConnect }:
             Connect to Terminal
           </DialogTitle>
           <DialogDescription>
-            Connect to {instance.instanceName} ({instance.instanceId}) using AWS Session Manager
+            Connect to {instance.instanceName} ({instance.instanceId}) using AWS
+            Session Manager
           </DialogDescription>
         </DialogHeader>
 
@@ -77,9 +96,11 @@ export default function TerminalDialog({ instance, isOpen, onClose, onConnect }:
             <Alert>
               <CheckCircle2 className="h-4 w-4" />
               <AlertDescription>
-                Session started successfully! The terminal should open in a new tab.
+                Session started successfully! The terminal should open in a new
+                tab.
                 <br />
-                Session ID: <code className="text-xs">{sessionInfo.sessionId}</code>
+                Session ID:{' '}
+                <code className="text-xs">{sessionInfo.sessionId}</code>
               </AlertDescription>
             </Alert>
           )}
@@ -98,7 +119,8 @@ export default function TerminalDialog({ instance, isOpen, onClose, onConnect }:
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  Instance must be running to connect. Current state: {instance.state}
+                  Instance must be running to connect. Current state:{' '}
+                  {instance.state}
                 </AlertDescription>
               </Alert>
             )}
@@ -128,5 +150,5 @@ export default function TerminalDialog({ instance, isOpen, onClose, onConnect }:
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

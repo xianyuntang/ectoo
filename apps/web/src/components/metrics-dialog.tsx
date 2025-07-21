@@ -1,32 +1,35 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Activity, AlertCircle } from 'lucide-react'
-import { EC2Instance, InstanceMetrics } from '@/lib/aws-service'
-import MetricsChart from './metrics-chart'
+} from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Activity, AlertCircle } from 'lucide-react';
+import { EC2Instance, InstanceMetrics } from '@/lib/aws-service';
+import MetricsChart from './metrics-chart';
 
 interface MetricsDialogProps {
-  instance: EC2Instance | null
-  isOpen: boolean
-  onClose: () => void
-  onFetchMetrics: (instanceId: string, period: number) => Promise<InstanceMetrics>
+  instance: EC2Instance | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onFetchMetrics: (
+    instanceId: string,
+    period: number,
+  ) => Promise<InstanceMetrics>;
 }
 
 const TIME_RANGES = [
@@ -35,19 +38,28 @@ const TIME_RANGES = [
   { label: 'Last 24 Hours', value: 86400 },
   { label: 'Last 7 Days', value: 604800 },
   { label: 'Last 30 Days', value: 2592000 },
-]
+];
 
-export default function MetricsDialog({ instance, isOpen, onClose, onFetchMetrics }: MetricsDialogProps) {
-  const [selectedPeriod, setSelectedPeriod] = useState(3600)
+export default function MetricsDialog({
+  instance,
+  isOpen,
+  onClose,
+  onFetchMetrics,
+}: MetricsDialogProps) {
+  const [selectedPeriod, setSelectedPeriod] = useState(3600);
 
-  const { data: metrics, isLoading, error } = useQuery({
+  const {
+    data: metrics,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['metrics', instance?.instanceId, selectedPeriod],
     queryFn: () => onFetchMetrics(instance!.instanceId, selectedPeriod),
     enabled: !!instance && isOpen,
     refetchInterval: 60000, // Refresh every minute
-  })
+  });
 
-  if (!instance) return null
+  if (!instance) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -58,7 +70,8 @@ export default function MetricsDialog({ instance, isOpen, onClose, onFetchMetric
             Instance Metrics
           </DialogTitle>
           <DialogDescription>
-            Performance metrics for {instance.instanceName} ({instance.instanceId})
+            Performance metrics for {instance.instanceName} (
+            {instance.instanceId})
           </DialogDescription>
         </DialogHeader>
 
@@ -85,7 +98,8 @@ export default function MetricsDialog({ instance, isOpen, onClose, onFetchMetric
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                Failed to fetch metrics: {error instanceof Error ? error.message : 'Unknown error'}
+                Failed to fetch metrics:{' '}
+                {error instanceof Error ? error.message : 'Unknown error'}
               </AlertDescription>
             </Alert>
           )}
@@ -105,7 +119,7 @@ export default function MetricsDialog({ instance, isOpen, onClose, onFetchMetric
                 color="#3b82f6"
                 unit="Percent"
               />
-              
+
               <MetricsChart
                 title="Network In"
                 description="Incoming network traffic"
@@ -113,7 +127,7 @@ export default function MetricsDialog({ instance, isOpen, onClose, onFetchMetric
                 color="#10b981"
                 unit="Bytes"
               />
-              
+
               <MetricsChart
                 title="Network Out"
                 description="Outgoing network traffic"
@@ -121,7 +135,7 @@ export default function MetricsDialog({ instance, isOpen, onClose, onFetchMetric
                 color="#f59e0b"
                 unit="Bytes"
               />
-              
+
               <MetricsChart
                 title="Disk Read"
                 description="Disk read operations"
@@ -129,7 +143,7 @@ export default function MetricsDialog({ instance, isOpen, onClose, onFetchMetric
                 color="#8b5cf6"
                 unit="Bytes"
               />
-              
+
               <MetricsChart
                 title="Disk Write"
                 description="Disk write operations"
@@ -142,12 +156,13 @@ export default function MetricsDialog({ instance, isOpen, onClose, onFetchMetric
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                No metrics data available. Make sure the instance has CloudWatch monitoring enabled.
+                No metrics data available. Make sure the instance has CloudWatch
+                monitoring enabled.
               </AlertDescription>
             </Alert>
           )}
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

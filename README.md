@@ -84,6 +84,7 @@ docker pull ghcr.io/xianyuntang/ectoo:latest
 ## Required AWS Permissions
 
 The IAM user must have the following EC2 permissions:
+
 - `ec2:DescribeInstances`
 - `ec2:StartInstances`
 - `ec2:StopInstances`

@@ -1,143 +1,158 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Card, CardContent } from '@/components/ui/card'
-import { toast } from 'sonner'
-import { RefreshCw, Server, Activity, Square as StopIcon } from 'lucide-react'
-import { AWSService, EC2Instance } from '@/lib/aws-service'
-import useStore, { getDecryptedCredentials } from '@/store/useStore'
-import { cn } from '@/lib/utils'
-import InstanceCard from './instance-card'
-import ModifyInstanceTypeDialog from './modify-instance-type-dialog'
-import TerminalDialog from './terminal-dialog'
-import MetricsDialog from './metrics-dialog'
-import InstanceDetailsDialog from './instance-details-dialog'
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent } from '@/components/ui/card';
+import { toast } from 'sonner';
+import { RefreshCw, Server, Activity, Square as StopIcon } from 'lucide-react';
+import { AWSService, EC2Instance } from '@/lib/aws-service';
+import useStore, { getDecryptedCredentials } from '@/store/useStore';
+import { cn } from '@/lib/utils';
+import InstanceCard from './instance-card';
+import ModifyInstanceTypeDialog from './modify-instance-type-dialog';
+import TerminalDialog from './terminal-dialog';
+import MetricsDialog from './metrics-dialog';
+import InstanceDetailsDialog from './instance-details-dialog';
 
 export default function InstancesGrid() {
-  const { credentials, selectedRegion } = useStore()
-  const [awsService, setAwsService] = useState<AWSService | null>(null)
-  const [selectedInstance, setSelectedInstance] = useState<EC2Instance | null>(null)
-  const [isModifyTypeDialogOpen, setIsModifyTypeDialogOpen] = useState(false)
-  const [isTerminalDialogOpen, setIsTerminalDialogOpen] = useState(false)
-  const [isMetricsDialogOpen, setIsMetricsDialogOpen] = useState(false)
-  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
-  const queryClient = useQueryClient()
-  
-  const { data: instances, isLoading, refetch, isRefetching } = useQuery({
+  const { credentials, selectedRegion } = useStore();
+  const [awsService, setAwsService] = useState<AWSService | null>(null);
+  const [selectedInstance, setSelectedInstance] = useState<EC2Instance | null>(
+    null,
+  );
+  const [isModifyTypeDialogOpen, setIsModifyTypeDialogOpen] = useState(false);
+  const [isTerminalDialogOpen, setIsTerminalDialogOpen] = useState(false);
+  const [isMetricsDialogOpen, setIsMetricsDialogOpen] = useState(false);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  const {
+    data: instances,
+    isLoading,
+    refetch,
+    isRefetching,
+  } = useQuery({
     queryKey: ['instances', selectedRegion],
     queryFn: async () => {
-      if (!credentials) throw new Error('No credentials')
-      
-      const decryptedCreds = await getDecryptedCredentials(credentials)
-      if (!decryptedCreds) throw new Error('Failed to decrypt credentials')
-      
-      const service = new AWSService(decryptedCreds, selectedRegion)
-      setAwsService(service)
-      return service.getInstances()
+      if (!credentials) throw new Error('No credentials');
+
+      const decryptedCreds = await getDecryptedCredentials(credentials);
+      if (!decryptedCreds) throw new Error('Failed to decrypt credentials');
+
+      const service = new AWSService(decryptedCreds, selectedRegion);
+      setAwsService(service);
+      return service.getInstances();
     },
     enabled: !!credentials,
     refetchInterval: 30000,
-  })
-  
+  });
+
   const startInstanceMutation = useMutation({
     mutationFn: async (instanceId: string) => {
-      if (!awsService) throw new Error('AWS service not initialized')
-      await awsService.startInstance(instanceId)
+      if (!awsService) throw new Error('AWS service not initialized');
+      await awsService.startInstance(instanceId);
     },
     onSuccess: () => {
-      toast.success('Instance start command sent')
-      setTimeout(() => refetch(), 2000)
+      toast.success('Instance start command sent');
+      setTimeout(() => refetch(), 2000);
     },
     onError: (error) => {
-      toast.error(`Failed to start instance: ${error.message}`)
+      toast.error(`Failed to start instance: ${error.message}`);
     },
-  })
-  
+  });
+
   const stopInstanceMutation = useMutation({
     mutationFn: async (instanceId: string) => {
-      if (!awsService) throw new Error('AWS service not initialized')
-      await awsService.stopInstance(instanceId)
+      if (!awsService) throw new Error('AWS service not initialized');
+      await awsService.stopInstance(instanceId);
     },
     onSuccess: () => {
-      toast.success('Instance stop command sent')
-      setTimeout(() => refetch(), 2000)
+      toast.success('Instance stop command sent');
+      setTimeout(() => refetch(), 2000);
     },
     onError: (error) => {
-      toast.error(`Failed to stop instance: ${error.message}`)
+      toast.error(`Failed to stop instance: ${error.message}`);
     },
-  })
-  
+  });
+
   const modifyInstanceTypeMutation = useMutation({
-    mutationFn: async ({ instanceId, instanceType }: { instanceId: string; instanceType: string }) => {
-      if (!awsService) throw new Error('AWS service not initialized')
-      await awsService.modifyInstanceType(instanceId, instanceType)
+    mutationFn: async ({
+      instanceId,
+      instanceType,
+    }: {
+      instanceId: string;
+      instanceType: string;
+    }) => {
+      if (!awsService) throw new Error('AWS service not initialized');
+      await awsService.modifyInstanceType(instanceId, instanceType);
     },
     onSuccess: () => {
-      toast.success('Instance type modified successfully')
-      setIsModifyTypeDialogOpen(false)
-      setSelectedInstance(null)
-      queryClient.invalidateQueries({ queryKey: ['instances', selectedRegion] })
+      toast.success('Instance type modified successfully');
+      setIsModifyTypeDialogOpen(false);
+      setSelectedInstance(null);
+      queryClient.invalidateQueries({
+        queryKey: ['instances', selectedRegion],
+      });
     },
     onError: (error: Error & { code?: string }) => {
       if (error.code === 'IncorrectInstanceState') {
-        toast.error('Instance must be stopped to modify its type')
+        toast.error('Instance must be stopped to modify its type');
       } else if (error.code === 'InvalidInstanceAttributeValue') {
-        toast.error('Invalid instance type')
+        toast.error('Invalid instance type');
       } else {
-        toast.error(`Failed to modify instance type: ${error.message}`)
+        toast.error(`Failed to modify instance type: ${error.message}`);
       }
     },
-  })
-  
+  });
+
   const handleModifyInstanceType = (instanceId: string, newType: string) => {
-    modifyInstanceTypeMutation.mutate({ instanceId, instanceType: newType })
-  }
-  
+    modifyInstanceTypeMutation.mutate({ instanceId, instanceType: newType });
+  };
+
   const handleOpenModifyDialog = (instance: EC2Instance) => {
-    setSelectedInstance(instance)
-    setIsModifyTypeDialogOpen(true)
-  }
-  
+    setSelectedInstance(instance);
+    setIsModifyTypeDialogOpen(true);
+  };
+
   const handleOpenTerminal = (instance: EC2Instance) => {
-    setSelectedInstance(instance)
-    setIsTerminalDialogOpen(true)
-  }
-  
+    setSelectedInstance(instance);
+    setIsTerminalDialogOpen(true);
+  };
+
   const handleConnectTerminal = async (instanceId: string) => {
-    if (!awsService) throw new Error('AWS service not initialized')
-    return awsService.startSessionManager(instanceId)
-  }
-  
+    if (!awsService) throw new Error('AWS service not initialized');
+    return awsService.startSessionManager(instanceId);
+  };
+
   const handleOpenMetrics = (instance: EC2Instance) => {
-    setSelectedInstance(instance)
-    setIsMetricsDialogOpen(true)
-  }
-  
+    setSelectedInstance(instance);
+    setIsMetricsDialogOpen(true);
+  };
+
   const handleFetchMetrics = async (instanceId: string, period: number) => {
-    if (!awsService) throw new Error('AWS service not initialized')
-    return awsService.getInstanceMetrics(instanceId, period)
-  }
-  
+    if (!awsService) throw new Error('AWS service not initialized');
+    return awsService.getInstanceMetrics(instanceId, period);
+  };
+
   const handleOpenDetails = (instance: EC2Instance) => {
-    setSelectedInstance(instance)
-    setIsDetailsDialogOpen(true)
-  }
-  
+    setSelectedInstance(instance);
+    setIsDetailsDialogOpen(true);
+  };
+
   const handleFetchDetails = async (instanceId: string) => {
-    if (!awsService) throw new Error('AWS service not initialized')
-    return awsService.getInstanceDetails(instanceId)
-  }
-  
+    if (!awsService) throw new Error('AWS service not initialized');
+    return awsService.getInstanceDetails(instanceId);
+  };
+
   // Stats
   const stats = {
     total: instances?.length || 0,
-    running: instances?.filter(i => i.state === 'running').length || 0,
-    stopped: instances?.filter(i => i.state === 'stopped').length || 0,
-  }
-  
+    running: instances?.filter((i) => i.state === 'running').length || 0,
+    stopped: instances?.filter((i) => i.state === 'stopped').length || 0,
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -152,9 +167,9 @@ export default function InstancesGrid() {
           ))}
         </div>
       </div>
-    )
+    );
   }
-  
+
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
@@ -163,53 +178,65 @@ export default function InstancesGrid() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Instances</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Total Instances
+                </p>
                 <p className="text-2xl font-bold">{stats.total}</p>
               </div>
               <Server className="h-8 w-8 text-muted-foreground/50" />
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Running</p>
-                <p className="text-2xl font-bold text-green-600">{stats.running}</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Running
+                </p>
+                <p className="text-2xl font-bold text-green-600">
+                  {stats.running}
+                </p>
               </div>
               <Activity className="h-8 w-8 text-green-600/50" />
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Stopped</p>
-                <p className="text-2xl font-bold text-red-600">{stats.stopped}</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Stopped
+                </p>
+                <p className="text-2xl font-bold text-red-600">
+                  {stats.stopped}
+                </p>
               </div>
               <StopIcon className="h-8 w-8 text-red-600/50" />
             </div>
           </CardContent>
         </Card>
       </div>
-      
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold tracking-tight">EC2 Instances</h2>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           size="sm"
           onClick={() => refetch()}
           disabled={isRefetching}
         >
-          <RefreshCw className={cn("h-4 w-4 mr-2", isRefetching && "animate-spin")} />
+          <RefreshCw
+            className={cn('h-4 w-4 mr-2', isRefetching && 'animate-spin')}
+          />
           {isRefetching ? 'Refreshing...' : 'Refresh'}
         </Button>
       </div>
-      
+
       {/* Instances Grid */}
       {instances?.length === 0 ? (
         <Card>
@@ -239,7 +266,7 @@ export default function InstancesGrid() {
           ))}
         </div>
       )}
-      
+
       {/* Modify Instance Type Dialog */}
       <ModifyInstanceTypeDialog
         open={isModifyTypeDialogOpen}
@@ -248,39 +275,39 @@ export default function InstancesGrid() {
         onConfirm={handleModifyInstanceType}
         isModifying={modifyInstanceTypeMutation.isPending}
       />
-      
+
       {/* Terminal Dialog */}
       <TerminalDialog
         instance={selectedInstance}
         isOpen={isTerminalDialogOpen}
         onClose={() => {
-          setIsTerminalDialogOpen(false)
-          setSelectedInstance(null)
+          setIsTerminalDialogOpen(false);
+          setSelectedInstance(null);
         }}
         onConnect={handleConnectTerminal}
       />
-      
+
       {/* Metrics Dialog */}
       <MetricsDialog
         instance={selectedInstance}
         isOpen={isMetricsDialogOpen}
         onClose={() => {
-          setIsMetricsDialogOpen(false)
-          setSelectedInstance(null)
+          setIsMetricsDialogOpen(false);
+          setSelectedInstance(null);
         }}
         onFetchMetrics={handleFetchMetrics}
       />
-      
+
       {/* Instance Details Dialog */}
       <InstanceDetailsDialog
         instance={selectedInstance}
         isOpen={isDetailsDialogOpen}
         onClose={() => {
-          setIsDetailsDialogOpen(false)
-          setSelectedInstance(null)
+          setIsDetailsDialogOpen(false);
+          setSelectedInstance(null);
         }}
         onFetchDetails={handleFetchDetails}
       />
     </div>
-  )
+  );
 }

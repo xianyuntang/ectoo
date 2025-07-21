@@ -9,42 +9,50 @@ ECToo - A Next.js application for monitoring and controlling AWS EC2 instances. 
 ## Development Commands
 
 ### Run development server
+
 ```bash
 npm run dev
 ```
 
 ### Build for production
+
 ```bash
 npm run build
 ```
 
 ### Start production server
+
 ```bash
 npm start
 ```
 
 ### Run linting
+
 ```bash
 npm run lint          # Lint all projects
 npm run lint:fix      # Lint with auto-fix
 ```
 
 ### Run type checking
+
 ```bash
 npm run typecheck
 ```
 
 ### Run tests
+
 ```bash
 npm test
 ```
 
 ### View all available commands
+
 ```bash
 npx nx show project web
 ```
 
 ### Additional useful commands
+
 ```bash
 # Clean build artifacts and cache
 npm run clean
@@ -66,6 +74,7 @@ This is an Nx monorepo with the following structure:
   - shadcn/ui components
 
 The application follows a client-side architecture where:
+
 - AWS credentials are stored in encrypted localStorage
 - AWS SDK for JavaScript (browser version) is used directly in the frontend
 - No backend services are required
@@ -81,6 +90,7 @@ The application follows a client-side architecture where:
 ## Required AWS IAM Permissions
 
 The IAM user must have these EC2 permissions:
+
 - ec2:DescribeInstances
 - ec2:StartInstances
 - ec2:StopInstances
@@ -89,14 +99,17 @@ The IAM user must have these EC2 permissions:
 - ec2:DescribeInstanceTypes
 
 For Session Manager (terminal connection) functionality:
+
 - ssm:StartSession
 - ssm:TerminateSession
 - ssm:DescribeInstanceInformation
 
 For CloudWatch metrics functionality:
+
 - cloudwatch:GetMetricStatistics
 
 The EC2 instances must also have:
+
 - SSM Agent installed and running
 - An IAM role attached with AmazonSSMManagedInstanceCore policy
 - CloudWatch monitoring enabled for detailed metrics

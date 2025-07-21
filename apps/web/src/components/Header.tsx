@@ -1,25 +1,25 @@
-'use client'
+'use client';
 
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Settings, LogOut } from 'lucide-react'
-import RegionSelector from './region-selector'
-import { ThemeToggle } from './theme-toggle'
-import useStore from '@/store/useStore'
+} from '@/components/ui/dropdown-menu';
+import { Settings, LogOut } from 'lucide-react';
+import RegionSelector from './region-selector';
+import { ThemeToggle } from './theme-toggle';
+import useStore from '@/store/useStore';
 
 export default function Header() {
-  const { clearCredentials } = useStore()
-  
+  const { clearCredentials } = useStore();
+
   const handleLogout = () => {
-    clearCredentials()
-    window.location.reload()
-  }
-  
+    clearCredentials();
+    window.location.reload();
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center px-4">
@@ -31,13 +31,13 @@ export default function Header() {
               <RegionSelector />
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <div className="md:hidden">
               <RegionSelector />
             </div>
             <ThemeToggle />
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="icon">
@@ -55,5 +55,5 @@ export default function Header() {
         </div>
       </div>
     </header>
-  )
+  );
 }

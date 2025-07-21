@@ -26,7 +26,7 @@ ENV NX_PARALLEL=1
 ENV NX_SKIP_NX_CACHE=true
 ENV NX_VERBOSE_LOGGING=false
 # Use direct build command to avoid nx daemon issues
-RUN cd apps/web && npm run build
+RUN npm run build
 
 # Production stage
 FROM node:22.14.0-alpine AS runner

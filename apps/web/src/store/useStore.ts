@@ -1,23 +1,23 @@
-import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
-import { encrypt, decrypt } from '@/lib/crypto'
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { encrypt, decrypt } from '@/lib/crypto';
 
 interface Credentials {
-  accessKeyId: string
-  secretAccessKey: string
+  accessKeyId: string;
+  secretAccessKey: string;
 }
 
 interface AppStore {
-  credentials: Credentials | null
-  selectedRegion: string
-  isLoading: boolean
-  error: string | null
-  
-  setCredentials: (credentials: Credentials) => Promise<void>
-  clearCredentials: () => void
-  setSelectedRegion: (region: string) => void
-  setLoading: (loading: boolean) => void
-  setError: (error: string | null) => void
+  credentials: Credentials | null;
+  selectedRegion: string;
+  isLoading: boolean;
+  error: string | null;
+
+  setCredentials: (credentials: Credentials) => Promise<void>;
+  clearCredentials: () => void;
+  setSelectedRegion: (region: string) => void;
+  setLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
 }
 
 const useStore = create<AppStore>()(
@@ -27,66 +27,70 @@ const useStore = create<AppStore>()(
       selectedRegion: 'us-east-1',
       isLoading: false,
       error: null,
-      
+
       setCredentials: async (credentials: Credentials) => {
         try {
-          const encryptedAccessKeyId = await encrypt(credentials.accessKeyId)
-          const encryptedSecretAccessKey = await encrypt(credentials.secretAccessKey)
-          
+          const encryptedAccessKeyId = await encrypt(credentials.accessKeyId);
+          const encryptedSecretAccessKey = await encrypt(
+            credentials.secretAccessKey,
+          );
+
           set({
             credentials: {
               accessKeyId: encryptedAccessKeyId,
-              secretAccessKey: encryptedSecretAccessKey
+              secretAccessKey: encryptedSecretAccessKey,
             },
-            error: null
-          })
+            error: null,
+          });
         } catch {
-          set({ error: 'Failed to encrypt credentials' })
+          set({ error: 'Failed to encrypt credentials' });
         }
       },
-      
+
       clearCredentials: () => {
-        set({ credentials: null })
+        set({ credentials: null });
       },
-      
+
       setSelectedRegion: (region: string) => {
-        set({ selectedRegion: region })
+        set({ selectedRegion: region });
       },
-      
+
       setLoading: (loading: boolean) => {
-        set({ isLoading: loading })
+        set({ isLoading: loading });
       },
-      
+
       setError: (error: string | null) => {
-        set({ error })
-      }
+        set({ error });
+      },
     }),
     {
       name: 'ectoo-storage',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         credentials: state.credentials,
-        selectedRegion: state.selectedRegion
-      })
-    }
-  )
-)
+        selectedRegion: state.selectedRegion,
+      }),
+    },
+  ),
+);
 
-export const getDecryptedCredentials = async (credentials: Credentials | null): Promise<Credentials | null> => {
-  if (!credentials) return null
-  
+export const getDecryptedCredentials = async (
+  credentials: Credentials | null,
+): Promise<Credentials | null> => {
+  if (!credentials) return null;
+
   try {
-    const decryptedAccessKeyId = await decrypt(credentials.accessKeyId)
-    const decryptedSecretAccessKey = await decrypt(credentials.secretAccessKey)
-    
+    const decryptedAccessKeyId = await decrypt(credentials.accessKeyId);
+    const decryptedSecretAccessKey = await decrypt(credentials.secretAccessKey);
+
     return {
       accessKeyId: decryptedAccessKeyId,
-      secretAccessKey: decryptedSecretAccessKey
-    }
+      secretAccessKey: decryptedSecretAccessKey,
+    };
   } catch (error) {
-    console.error('Failed to decrypt credentials:', error)
-    return null
+    console.error('Failed to decrypt credentials:', error);
+    return null;
   }
-}
+};
 
-export default useStore
+export default useStore;

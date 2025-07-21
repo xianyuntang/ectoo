@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -30,15 +30,15 @@ jobs:
           prerelease: false
           body: |
             ## Docker Images
-            
+
             This release is available as a Docker image:
-            
+
             ```bash
             docker pull ghcr.io/${{ github.repository }}:${{ github.ref_name }}
             ```
-            
+
             ## What's Changed
-            
+
             Please see the commit history for changes in this release.
 
   build-and-push-release:
@@ -46,7 +46,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-      
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -63,7 +63,6 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
 
       - name: Extract metadata
         id: meta

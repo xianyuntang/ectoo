@@ -1,92 +1,92 @@
-'use client'
+'use client';
 
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { 
-  Play, 
-  Square, 
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import {
+  Play,
+  Square,
   Globe,
   Clock,
   Cpu,
   HardDrive,
   MoreVertical,
-  Settings2
-} from 'lucide-react'
+  Settings2,
+} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu'
-import { EC2Instance } from '@/lib/aws-service'
-import { cn } from '@/lib/utils'
+} from '@/components/ui/dropdown-menu';
+import { EC2Instance } from '@/lib/aws-service';
+import { cn } from '@/lib/utils';
 
 interface InstanceCardProps {
-  instance: EC2Instance
-  onStart: (instanceId: string) => void
-  onStop: (instanceId: string) => void
-  onModifyType?: (instance: EC2Instance) => void
-  onConnectTerminal?: (instance: EC2Instance) => void
-  onViewMetrics?: (instance: EC2Instance) => void
-  onViewDetails?: (instance: EC2Instance) => void
-  isStarting?: boolean
-  isStopping?: boolean
+  instance: EC2Instance;
+  onStart: (instanceId: string) => void;
+  onStop: (instanceId: string) => void;
+  onModifyType?: (instance: EC2Instance) => void;
+  onConnectTerminal?: (instance: EC2Instance) => void;
+  onViewMetrics?: (instance: EC2Instance) => void;
+  onViewDetails?: (instance: EC2Instance) => void;
+  isStarting?: boolean;
+  isStopping?: boolean;
 }
 
 const getStatusConfig = (status: string) => {
   switch (status) {
     case 'running':
-      return { 
-        color: 'bg-green-500', 
-        bgColor: 'bg-green-50 dark:bg-green-950', 
-        textColor: 'text-green-700 dark:text-green-400', 
-        label: 'Running' 
-      }
+      return {
+        color: 'bg-green-500',
+        bgColor: 'bg-green-50 dark:bg-green-950',
+        textColor: 'text-green-700 dark:text-green-400',
+        label: 'Running',
+      };
     case 'stopped':
-      return { 
-        color: 'bg-gray-400', 
-        bgColor: 'bg-gray-50 dark:bg-gray-950', 
-        textColor: 'text-gray-700 dark:text-gray-400', 
-        label: 'Stopped' 
-      }
+      return {
+        color: 'bg-gray-400',
+        bgColor: 'bg-gray-50 dark:bg-gray-950',
+        textColor: 'text-gray-700 dark:text-gray-400',
+        label: 'Stopped',
+      };
     case 'pending':
-      return { 
-        color: 'bg-yellow-500', 
-        bgColor: 'bg-yellow-50 dark:bg-yellow-950', 
-        textColor: 'text-yellow-700 dark:text-yellow-400', 
-        label: 'Starting' 
-      }
+      return {
+        color: 'bg-yellow-500',
+        bgColor: 'bg-yellow-50 dark:bg-yellow-950',
+        textColor: 'text-yellow-700 dark:text-yellow-400',
+        label: 'Starting',
+      };
     case 'stopping':
-      return { 
-        color: 'bg-orange-500', 
-        bgColor: 'bg-orange-50 dark:bg-orange-950', 
-        textColor: 'text-orange-700 dark:text-orange-400', 
-        label: 'Stopping' 
-      }
+      return {
+        color: 'bg-orange-500',
+        bgColor: 'bg-orange-50 dark:bg-orange-950',
+        textColor: 'text-orange-700 dark:text-orange-400',
+        label: 'Stopping',
+      };
     default:
-      return { 
-        color: 'bg-gray-500', 
-        bgColor: 'bg-gray-50 dark:bg-gray-950', 
-        textColor: 'text-gray-700 dark:text-gray-400', 
-        label: status 
-      }
+      return {
+        color: 'bg-gray-500',
+        bgColor: 'bg-gray-50 dark:bg-gray-950',
+        textColor: 'text-gray-700 dark:text-gray-400',
+        label: status,
+      };
   }
-}
+};
 
-export default function InstanceCard({ 
-  instance, 
-  onStart, 
-  onStop, 
+export default function InstanceCard({
+  instance,
+  onStart,
+  onStop,
   onModifyType,
   onConnectTerminal,
   onViewMetrics,
   onViewDetails,
-  isStarting, 
-  isStopping 
+  isStarting,
+  isStopping,
 }: InstanceCardProps) {
-  const statusConfig = getStatusConfig(instance.state)
-  
+  const statusConfig = getStatusConfig(instance.state);
+
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader className="pb-4">
@@ -100,42 +100,56 @@ export default function InstanceCard({
                 <p className="text-sm text-muted-foreground font-mono">
                   {instance.instanceId}
                 </p>
-                <div className={cn(
-                  "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium mt-2",
-                  statusConfig.bgColor,
-                  statusConfig.textColor
-                )}>
-                  <span className={cn("h-1.5 w-1.5 rounded-full", statusConfig.color)} />
+                <div
+                  className={cn(
+                    'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium mt-2',
+                    statusConfig.bgColor,
+                    statusConfig.textColor,
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'h-1.5 w-1.5 rounded-full',
+                      statusConfig.color,
+                    )}
+                  />
                   {statusConfig.label}
                 </div>
               </div>
               {onModifyType && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2 -mt-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 -mr-2 -mt-1"
+                    >
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => onViewDetails && onViewDetails(instance)}
                     >
                       View Details
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => onViewMetrics && onViewMetrics(instance)}
                     >
                       Monitor Metrics
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => onConnectTerminal && onConnectTerminal(instance)}
+                    <DropdownMenuItem
+                      onClick={() =>
+                        onConnectTerminal && onConnectTerminal(instance)
+                      }
                       disabled={instance.state !== 'running'}
                     >
                       Connect Terminal
-                      {instance.state !== 'running' && ' (Start instance first)'}
+                      {instance.state !== 'running' &&
+                        ' (Start instance first)'}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => onModifyType(instance)}
                       disabled={instance.state !== 'stopped'}
                     >
@@ -150,7 +164,7 @@ export default function InstanceCard({
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div className="space-y-1">
@@ -160,7 +174,7 @@ export default function InstanceCard({
             </p>
             <p className="font-medium">{instance.instanceType}</p>
           </div>
-          
+
           <div className="space-y-1">
             <p className="text-muted-foreground flex items-center gap-1">
               <Clock className="h-3 w-3" />
@@ -170,7 +184,7 @@ export default function InstanceCard({
               {new Date(instance.launchTime).toLocaleDateString()}
             </p>
           </div>
-          
+
           <div className="space-y-1">
             <p className="text-muted-foreground flex items-center gap-1">
               <Globe className="h-3 w-3" />
@@ -180,7 +194,7 @@ export default function InstanceCard({
               {instance.publicIp || 'None'}
             </p>
           </div>
-          
+
           <div className="space-y-1">
             <p className="text-muted-foreground flex items-center gap-1">
               <HardDrive className="h-3 w-3" />
@@ -191,7 +205,7 @@ export default function InstanceCard({
             </p>
           </div>
         </div>
-        
+
         <div className="pt-2">
           {instance.state === 'stopped' && (
             <Button
@@ -225,5 +239,5 @@ export default function InstanceCard({
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

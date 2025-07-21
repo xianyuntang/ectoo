@@ -1,15 +1,15 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { toast } from 'sonner'
-import { 
-  Play, 
-  Square, 
-  RefreshCw, 
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
+import {
+  Play,
+  Square,
+  RefreshCw,
   Server,
   Globe,
   Clock,
@@ -17,121 +17,161 @@ import {
   Activity,
   Cpu,
   HardDrive,
-  Settings2
-} from 'lucide-react'
+  Settings2,
+} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu'
-import { AWSService, EC2Instance } from '@/lib/aws-service'
-import useStore, { getDecryptedCredentials } from '@/store/useStore'
-import { cn } from '@/lib/utils'
-import ModifyInstanceTypeDialog from './modify-instance-type-dialog'
+} from '@/components/ui/dropdown-menu';
+import { AWSService, EC2Instance } from '@/lib/aws-service';
+import useStore, { getDecryptedCredentials } from '@/store/useStore';
+import { cn } from '@/lib/utils';
+import ModifyInstanceTypeDialog from './modify-instance-type-dialog';
 
 const getStatusConfig = (status: string) => {
   switch (status) {
     case 'running':
-      return { color: 'bg-green-500', bgColor: 'bg-green-500/10', textColor: 'text-green-700 dark:text-green-400', label: 'Running' }
+      return {
+        color: 'bg-green-500',
+        bgColor: 'bg-green-500/10',
+        textColor: 'text-green-700 dark:text-green-400',
+        label: 'Running',
+      };
     case 'stopped':
-      return { color: 'bg-red-500', bgColor: 'bg-red-500/10', textColor: 'text-red-700 dark:text-red-400', label: 'Stopped' }
+      return {
+        color: 'bg-red-500',
+        bgColor: 'bg-red-500/10',
+        textColor: 'text-red-700 dark:text-red-400',
+        label: 'Stopped',
+      };
     case 'pending':
-      return { color: 'bg-yellow-500', bgColor: 'bg-yellow-500/10', textColor: 'text-yellow-700 dark:text-yellow-400', label: 'Starting' }
+      return {
+        color: 'bg-yellow-500',
+        bgColor: 'bg-yellow-500/10',
+        textColor: 'text-yellow-700 dark:text-yellow-400',
+        label: 'Starting',
+      };
     case 'stopping':
-      return { color: 'bg-orange-500', bgColor: 'bg-orange-500/10', textColor: 'text-orange-700 dark:text-orange-400', label: 'Stopping' }
+      return {
+        color: 'bg-orange-500',
+        bgColor: 'bg-orange-500/10',
+        textColor: 'text-orange-700 dark:text-orange-400',
+        label: 'Stopping',
+      };
     default:
-      return { color: 'bg-gray-500', bgColor: 'bg-gray-500/10', textColor: 'text-gray-700 dark:text-gray-400', label: status }
+      return {
+        color: 'bg-gray-500',
+        bgColor: 'bg-gray-500/10',
+        textColor: 'text-gray-700 dark:text-gray-400',
+        label: status,
+      };
   }
-}
+};
 
 export default function InstancesView() {
-  const { credentials, selectedRegion } = useStore()
-  const [awsService, setAwsService] = useState<AWSService | null>(null)
-  const [selectedInstance, setSelectedInstance] = useState<EC2Instance | null>(null)
-  const [isModifyTypeDialogOpen, setIsModifyTypeDialogOpen] = useState(false)
-  const queryClient = useQueryClient()
-  
-  const { data: instances, isLoading, refetch, isRefetching } = useQuery({
+  const { credentials, selectedRegion } = useStore();
+  const [awsService, setAwsService] = useState<AWSService | null>(null);
+  const [selectedInstance, setSelectedInstance] = useState<EC2Instance | null>(
+    null,
+  );
+  const [isModifyTypeDialogOpen, setIsModifyTypeDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  const {
+    data: instances,
+    isLoading,
+    refetch,
+    isRefetching,
+  } = useQuery({
     queryKey: ['instances', selectedRegion],
     queryFn: async () => {
-      if (!credentials) throw new Error('No credentials')
-      
-      const decryptedCreds = await getDecryptedCredentials(credentials)
-      if (!decryptedCreds) throw new Error('Failed to decrypt credentials')
-      
-      const service = new AWSService(decryptedCreds, selectedRegion)
-      setAwsService(service)
-      return service.getInstances()
+      if (!credentials) throw new Error('No credentials');
+
+      const decryptedCreds = await getDecryptedCredentials(credentials);
+      if (!decryptedCreds) throw new Error('Failed to decrypt credentials');
+
+      const service = new AWSService(decryptedCreds, selectedRegion);
+      setAwsService(service);
+      return service.getInstances();
     },
     enabled: !!credentials,
     refetchInterval: 30000,
-  })
-  
+  });
+
   const startInstanceMutation = useMutation({
     mutationFn: async (instanceId: string) => {
-      if (!awsService) throw new Error('AWS service not initialized')
-      await awsService.startInstance(instanceId)
+      if (!awsService) throw new Error('AWS service not initialized');
+      await awsService.startInstance(instanceId);
     },
     onSuccess: () => {
-      toast.success('Instance start command sent')
-      setTimeout(() => refetch(), 2000)
+      toast.success('Instance start command sent');
+      setTimeout(() => refetch(), 2000);
     },
     onError: (error) => {
-      toast.error(`Start failed: ${error.message}`)
+      toast.error(`Start failed: ${error.message}`);
     },
-  })
-  
+  });
+
   const stopInstanceMutation = useMutation({
     mutationFn: async (instanceId: string) => {
-      if (!awsService) throw new Error('AWS service not initialized')
-      await awsService.stopInstance(instanceId)
+      if (!awsService) throw new Error('AWS service not initialized');
+      await awsService.stopInstance(instanceId);
     },
     onSuccess: () => {
-      toast.success('Instance stop command sent')
-      setTimeout(() => refetch(), 2000)
+      toast.success('Instance stop command sent');
+      setTimeout(() => refetch(), 2000);
     },
     onError: (error) => {
-      toast.error(`Stop failed: ${error.message}`)
+      toast.error(`Stop failed: ${error.message}`);
     },
-  })
-  
+  });
+
   const modifyInstanceTypeMutation = useMutation({
-    mutationFn: async ({ instanceId, instanceType }: { instanceId: string; instanceType: string }) => {
-      if (!awsService) throw new Error('AWS service not initialized')
-      await awsService.modifyInstanceType(instanceId, instanceType)
+    mutationFn: async ({
+      instanceId,
+      instanceType,
+    }: {
+      instanceId: string;
+      instanceType: string;
+    }) => {
+      if (!awsService) throw new Error('AWS service not initialized');
+      await awsService.modifyInstanceType(instanceId, instanceType);
     },
     onSuccess: () => {
-      toast.success('Instance type modified successfully')
-      setIsModifyTypeDialogOpen(false)
-      setSelectedInstance(null)
+      toast.success('Instance type modified successfully');
+      setIsModifyTypeDialogOpen(false);
+      setSelectedInstance(null);
       // Refresh data immediately
-      queryClient.invalidateQueries({ queryKey: ['instances', selectedRegion] })
+      queryClient.invalidateQueries({
+        queryKey: ['instances', selectedRegion],
+      });
     },
     onError: (error: Error & { code?: string }) => {
       // Handle specific errors
       if (error.code === 'IncorrectInstanceState') {
-        toast.error('Instance must be in stopped state to modify type')
+        toast.error('Instance must be in stopped state to modify type');
       } else if (error.code === 'InvalidInstanceAttributeValue') {
-        toast.error('Invalid instance type')
+        toast.error('Invalid instance type');
       } else {
-        toast.error(`Modification failed: ${error.message}`)
+        toast.error(`Modification failed: ${error.message}`);
       }
     },
-  })
-  
+  });
+
   const handleModifyInstanceType = (instanceId: string, newType: string) => {
-    modifyInstanceTypeMutation.mutate({ instanceId, instanceType: newType })
-  }
-  
+    modifyInstanceTypeMutation.mutate({ instanceId, instanceType: newType });
+  };
+
   // Statistics
   const stats = {
     total: instances?.length || 0,
-    running: instances?.filter(i => i.state === 'running').length || 0,
-    stopped: instances?.filter(i => i.state === 'stopped').length || 0,
-  }
-  
+    running: instances?.filter((i) => i.state === 'running').length || 0,
+    stopped: instances?.filter((i) => i.state === 'stopped').length || 0,
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -146,9 +186,9 @@ export default function InstancesView() {
           ))}
         </div>
       </div>
-    )
+    );
   }
-  
+
   return (
     <div className="space-y-6">
       {/* Statistics cards */}
@@ -166,13 +206,15 @@ export default function InstancesView() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="border-0 shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Running</p>
-                <p className="text-3xl font-bold mt-1 text-green-600">{stats.running}</p>
+                <p className="text-3xl font-bold mt-1 text-green-600">
+                  {stats.running}
+                </p>
               </div>
               <div className="p-3 rounded-full bg-green-500/10">
                 <Activity className="h-6 w-6 text-green-600" />
@@ -180,13 +222,15 @@ export default function InstancesView() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="border-0 shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Stopped</p>
-                <p className="text-3xl font-bold mt-1 text-red-600">{stats.stopped}</p>
+                <p className="text-3xl font-bold mt-1 text-red-600">
+                  {stats.stopped}
+                </p>
               </div>
               <div className="p-3 rounded-full bg-red-500/10">
                 <Square className="h-6 w-6 text-red-600" />
@@ -194,7 +238,7 @@ export default function InstancesView() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="border-0 shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -209,21 +253,23 @@ export default function InstancesView() {
           </CardContent>
         </Card>
       </div>
-      
+
       {/* Action bar */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Instance List</h2>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           size="sm"
           onClick={() => refetch()}
           disabled={isRefetching}
         >
-          <RefreshCw className={cn("h-4 w-4 mr-2", isRefetching && "animate-spin")} />
+          <RefreshCw
+            className={cn('h-4 w-4 mr-2', isRefetching && 'animate-spin')}
+          />
           {isRefetching ? 'Refreshing...' : 'Refresh'}
         </Button>
       </div>
-      
+
       {/* Instance cards grid */}
       <div className="grid grid-cols-2 gap-6">
         {instances?.length === 0 ? (
@@ -237,9 +283,12 @@ export default function InstancesView() {
           </Card>
         ) : (
           instances?.map((instance) => {
-            const statusConfig = getStatusConfig(instance.state)
+            const statusConfig = getStatusConfig(instance.state);
             return (
-              <Card key={instance.instanceId} className="border-0 shadow-sm card-hover">
+              <Card
+                key={instance.instanceId}
+                className="border-0 shadow-sm card-hover"
+              >
                 <CardHeader className="pb-4">
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
@@ -250,7 +299,7 @@ export default function InstancesView() {
                         {instance.instanceId}
                       </p>
                     </div>
-                    
+
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -262,37 +311,57 @@ export default function InstancesView() {
                         <DropdownMenuItem>Monitoring Metrics</DropdownMenuItem>
                         <DropdownMenuItem>Connect Terminal</DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => {
-                            console.log('Modify instance type clicked', instance)
-                            setSelectedInstance(instance)
-                            setIsModifyTypeDialogOpen(true)
+                            console.log(
+                              'Modify instance type clicked',
+                              instance,
+                            );
+                            setSelectedInstance(instance);
+                            setIsModifyTypeDialogOpen(true);
                           }}
                           disabled={instance.state !== 'stopped'}
                         >
                           <Settings2 className="h-4 w-4 mr-2" />
                           Modify Instance Type
-                          {instance.state !== 'stopped' && ' (Stop instance first)'}
+                          {instance.state !== 'stopped' &&
+                            ' (Stop instance first)'}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                  
-                  <div className={cn("inline-flex items-center gap-2 px-3 py-1 rounded-full", statusConfig.bgColor)}>
-                    <div className={cn("h-2 w-2 rounded-full", statusConfig.color)} />
-                    <span className={cn("text-sm font-medium", statusConfig.textColor)}>
+
+                  <div
+                    className={cn(
+                      'inline-flex items-center gap-2 px-3 py-1 rounded-full',
+                      statusConfig.bgColor,
+                    )}
+                  >
+                    <div
+                      className={cn('h-2 w-2 rounded-full', statusConfig.color)}
+                    />
+                    <span
+                      className={cn(
+                        'text-sm font-medium',
+                        statusConfig.textColor,
+                      )}
+                    >
                       {statusConfig.label}
                     </span>
                   </div>
                 </CardHeader>
-                
+
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <p className="text-muted-foreground mb-1">Instance Type</p>
+                      <p className="text-muted-foreground mb-1">
+                        Instance Type
+                      </p>
                       <div className="flex items-center gap-2">
                         <Cpu className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{instance.instanceType}</span>
+                        <span className="font-medium">
+                          {instance.instanceType}
+                        </span>
                       </div>
                     </div>
                     <div>
@@ -323,13 +392,15 @@ export default function InstancesView() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex gap-2 pt-2">
                     {instance.state === 'stopped' && (
                       <Button
                         size="sm"
                         className="flex-1 bg-green-600 hover:bg-green-700"
-                        onClick={() => startInstanceMutation.mutate(instance.instanceId)}
+                        onClick={() =>
+                          startInstanceMutation.mutate(instance.instanceId)
+                        }
                         disabled={startInstanceMutation.isPending}
                       >
                         <Play className="h-4 w-4 mr-2" />
@@ -341,14 +412,17 @@ export default function InstancesView() {
                         size="sm"
                         variant="destructive"
                         className="flex-1"
-                        onClick={() => stopInstanceMutation.mutate(instance.instanceId)}
+                        onClick={() =>
+                          stopInstanceMutation.mutate(instance.instanceId)
+                        }
                         disabled={stopInstanceMutation.isPending}
                       >
                         <Square className="h-4 w-4 mr-2" />
                         Stop Instance
                       </Button>
                     )}
-                    {(instance.state === 'pending' || instance.state === 'stopping') && (
+                    {(instance.state === 'pending' ||
+                      instance.state === 'stopping') && (
                       <Button size="sm" className="flex-1" disabled>
                         <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                         Processing...
@@ -357,11 +431,11 @@ export default function InstancesView() {
                   </div>
                 </CardContent>
               </Card>
-            )
+            );
           })
         )}
       </div>
-      
+
       {/* Modify instance type dialog */}
       <ModifyInstanceTypeDialog
         open={isModifyTypeDialogOpen}
@@ -371,5 +445,5 @@ export default function InstancesView() {
         isModifying={modifyInstanceTypeMutation.isPending}
       />
     </div>
-  )
+  );
 }
