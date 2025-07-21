@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 import InstanceCard from './instance-card'
 import ModifyInstanceTypeDialog from './modify-instance-type-dialog'
 import TerminalDialog from './terminal-dialog'
+import MetricsDialog from './metrics-dialog'
 
 export default function InstancesGrid() {
   const { credentials, selectedRegion } = useStore()
@@ -20,6 +21,7 @@ export default function InstancesGrid() {
   const [selectedInstance, setSelectedInstance] = useState<EC2Instance | null>(null)
   const [isModifyTypeDialogOpen, setIsModifyTypeDialogOpen] = useState(false)
   const [isTerminalDialogOpen, setIsTerminalDialogOpen] = useState(false)
+  const [isMetricsDialogOpen, setIsMetricsDialogOpen] = useState(false)
   const queryClient = useQueryClient()
   
   const { data: instances, isLoading, refetch, isRefetching } = useQuery({
@@ -105,6 +107,16 @@ export default function InstancesGrid() {
   const handleConnectTerminal = async (instanceId: string) => {
     if (!awsService) throw new Error('AWS service not initialized')
     return awsService.startSessionManager(instanceId)
+  }
+  
+  const handleOpenMetrics = (instance: EC2Instance) => {
+    setSelectedInstance(instance)
+    setIsMetricsDialogOpen(true)
+  }
+  
+  const handleFetchMetrics = async (instanceId: string, period: number) => {
+    if (!awsService) throw new Error('AWS service not initialized')
+    return awsService.getInstanceMetrics(instanceId, period)
   }
   
   // Stats
@@ -207,6 +219,7 @@ export default function InstancesGrid() {
               onStop={stopInstanceMutation.mutate}
               onModifyType={handleOpenModifyDialog}
               onConnectTerminal={handleOpenTerminal}
+              onViewMetrics={handleOpenMetrics}
               isStarting={startInstanceMutation.isPending}
               isStopping={stopInstanceMutation.isPending}
             />
@@ -232,6 +245,17 @@ export default function InstancesGrid() {
           setSelectedInstance(null)
         }}
         onConnect={handleConnectTerminal}
+      />
+      
+      {/* Metrics Dialog */}
+      <MetricsDialog
+        instance={selectedInstance}
+        isOpen={isMetricsDialogOpen}
+        onClose={() => {
+          setIsMetricsDialogOpen(false)
+          setSelectedInstance(null)
+        }}
+        onFetchMetrics={handleFetchMetrics}
       />
     </div>
   )

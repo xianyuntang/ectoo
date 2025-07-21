@@ -93,9 +93,13 @@ For Session Manager (terminal connection) functionality:
 - ssm:TerminateSession
 - ssm:DescribeInstanceInformation
 
+For CloudWatch metrics functionality:
+- cloudwatch:GetMetricStatistics
+
 The EC2 instances must also have:
 - SSM Agent installed and running
 - An IAM role attached with AmazonSSMManagedInstanceCore policy
+- CloudWatch monitoring enabled for detailed metrics
 
 ## Important Files
 

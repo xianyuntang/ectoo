@@ -20,9 +20,24 @@ export interface SessionManagerUrl {
   sessionId: string
 }
 
+export interface MetricDataPoint {
+  timestamp: Date
+  value: number
+  unit?: string
+}
+
+export interface InstanceMetrics {
+  cpuUtilization: MetricDataPoint[]
+  networkIn: MetricDataPoint[]
+  networkOut: MetricDataPoint[]
+  diskReadBytes: MetricDataPoint[]
+  diskWriteBytes: MetricDataPoint[]
+}
+
 export class AWSService {
   private ec2: AWS.EC2 | null = null
   private ssm: AWS.SSM | null = null
+  private cloudwatch: AWS.CloudWatch | null = null
   
   constructor(credentials: { accessKeyId: string; secretAccessKey: string }, region: string) {
     AWS.config.update({
@@ -33,6 +48,7 @@ export class AWSService {
     
     this.ec2 = new AWS.EC2()
     this.ssm = new AWS.SSM()
+    this.cloudwatch = new AWS.CloudWatch()
   }
   
   async getRegions(): Promise<AWSRegion[]> {
@@ -168,6 +184,7 @@ export class AWSService {
     AWS.config.update({ region })
     this.ec2 = new AWS.EC2()
     this.ssm = new AWS.SSM()
+    this.cloudwatch = new AWS.CloudWatch()
   }
   
   async startSessionManager(instanceId: string): Promise<SessionManagerUrl> {
@@ -221,6 +238,88 @@ export class AWSService {
       }).promise()
     } catch (error) {
       console.error('Error terminating session:', error)
+      throw error
+    }
+  }
+  
+  async getInstanceMetrics(instanceId: string, period: number = 3600): Promise<InstanceMetrics> {
+    if (!this.cloudwatch) throw new Error('CloudWatch client not initialized')
+    
+    const endTime = new Date()
+    const startTime = new Date(endTime.getTime() - period * 1000) // period in seconds
+    
+    const baseParams = {
+      StartTime: startTime,
+      EndTime: endTime,
+      Period: period > 86400 ? 3600 : 300, // 1 hour for > 1 day, otherwise 5 minutes
+      Statistics: ['Average'],
+      Dimensions: [
+        {
+          Name: 'InstanceId',
+          Value: instanceId
+        }
+      ]
+    }
+    
+    try {
+      // Fetch all metrics in parallel
+      const [cpuData, networkInData, networkOutData, diskReadData, diskWriteData] = await Promise.all([
+        this.cloudwatch.getMetricStatistics({
+          ...baseParams,
+          Namespace: 'AWS/EC2',
+          MetricName: 'CPUUtilization',
+          Unit: 'Percent'
+        }).promise(),
+        
+        this.cloudwatch.getMetricStatistics({
+          ...baseParams,
+          Namespace: 'AWS/EC2',
+          MetricName: 'NetworkIn',
+          Unit: 'Bytes'
+        }).promise(),
+        
+        this.cloudwatch.getMetricStatistics({
+          ...baseParams,
+          Namespace: 'AWS/EC2',
+          MetricName: 'NetworkOut',
+          Unit: 'Bytes'
+        }).promise(),
+        
+        this.cloudwatch.getMetricStatistics({
+          ...baseParams,
+          Namespace: 'AWS/EC2',
+          MetricName: 'DiskReadBytes',
+          Unit: 'Bytes'
+        }).promise(),
+        
+        this.cloudwatch.getMetricStatistics({
+          ...baseParams,
+          Namespace: 'AWS/EC2',
+          MetricName: 'DiskWriteBytes',
+          Unit: 'Bytes'
+        }).promise()
+      ])
+      
+      // Transform the data
+      const transformDatapoints = (data: AWS.CloudWatch.GetMetricStatisticsOutput): MetricDataPoint[] => {
+        return (data.Datapoints || [])
+          .sort((a, b) => (a.Timestamp?.getTime() || 0) - (b.Timestamp?.getTime() || 0))
+          .map(point => ({
+            timestamp: point.Timestamp || new Date(),
+            value: point.Average || 0,
+            unit: data.Label
+          }))
+      }
+      
+      return {
+        cpuUtilization: transformDatapoints(cpuData),
+        networkIn: transformDatapoints(networkInData),
+        networkOut: transformDatapoints(networkOutData),
+        diskReadBytes: transformDatapoints(diskReadData),
+        diskWriteBytes: transformDatapoints(diskWriteData)
+      }
+    } catch (error) {
+      console.error('Error fetching instance metrics:', error)
       throw error
     }
   }
