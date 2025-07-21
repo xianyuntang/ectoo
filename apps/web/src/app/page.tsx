@@ -2,7 +2,7 @@
 
 import useStore from '@/store/useStore'
 import CredentialsForm from '@/components/credentials-form'
-import InstancesView from '@/components/instances-view'
+import InstancesGrid from '@/components/instances-grid'
 import Header from '@/components/header'
 import { Toaster } from '@/components/ui/sonner'
 
@@ -29,7 +29,7 @@ export default function Home() {
         </div>
       ) : (
         <main className="container mx-auto py-8 px-4">
-          <InstancesView />
+          <InstancesGrid />
         </main>
       )}
       

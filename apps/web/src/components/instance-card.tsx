@@ -8,8 +8,17 @@ import {
   Globe,
   Clock,
   Cpu,
-  HardDrive
+  HardDrive,
+  MoreVertical,
+  Settings2
 } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
 import { EC2Instance } from '@/lib/aws-service'
 import { cn } from '@/lib/utils'
 
@@ -17,6 +26,7 @@ interface InstanceCardProps {
   instance: EC2Instance
   onStart: (instanceId: string) => void
   onStop: (instanceId: string) => void
+  onModifyType?: (instance: EC2Instance) => void
   isStarting?: boolean
   isStopping?: boolean
 }
@@ -65,6 +75,7 @@ export default function InstanceCard({
   instance, 
   onStart, 
   onStop, 
+  onModifyType,
   isStarting, 
   isStopping 
 }: InstanceCardProps) {
@@ -74,7 +85,7 @@ export default function InstanceCard({
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
-          <div className="space-y-1">
+          <div className="space-y-1 flex-1">
             <h3 className="font-semibold text-lg leading-none tracking-tight">
               {instance.instanceName}
             </h3>
@@ -82,13 +93,38 @@ export default function InstanceCard({
               {instance.instanceId}
             </p>
           </div>
-          <div className={cn(
-            "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium",
-            statusConfig.bgColor,
-            statusConfig.textColor
-          )}>
-            <span className={cn("h-1.5 w-1.5 rounded-full", statusConfig.color)} />
-            {statusConfig.label}
+          <div className="flex items-start gap-2">
+            <div className={cn(
+              "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium",
+              statusConfig.bgColor,
+              statusConfig.textColor
+            )}>
+              <span className={cn("h-1.5 w-1.5 rounded-full", statusConfig.color)} />
+              {statusConfig.label}
+            </div>
+            {onModifyType && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem>View Details</DropdownMenuItem>
+                  <DropdownMenuItem>Monitor Metrics</DropdownMenuItem>
+                  <DropdownMenuItem>Connect Terminal</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={() => onModifyType(instance)}
+                    disabled={instance.state !== 'stopped'}
+                  >
+                    <Settings2 className="h-4 w-4 mr-2" />
+                    Modify Instance Type
+                    {instance.state !== 'stopped' && ' (Stop instance first)'}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
       </CardHeader>

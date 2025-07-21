@@ -1,20 +1,24 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { RefreshCw, Server, Activity, Square as StopIcon } from 'lucide-react'
-import { AWSService } from '@/lib/aws-service'
+import { AWSService, EC2Instance } from '@/lib/aws-service'
 import useStore, { getDecryptedCredentials } from '@/store/useStore'
 import { cn } from '@/lib/utils'
 import InstanceCard from './instance-card'
+import ModifyInstanceTypeDialog from './modify-instance-type-dialog'
 
 export default function InstancesGrid() {
   const { credentials, selectedRegion } = useStore()
   const [awsService, setAwsService] = useState<AWSService | null>(null)
+  const [selectedInstance, setSelectedInstance] = useState<EC2Instance | null>(null)
+  const [isModifyTypeDialogOpen, setIsModifyTypeDialogOpen] = useState(false)
+  const queryClient = useQueryClient()
   
   const { data: instances, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['instances', selectedRegion],
@@ -59,6 +63,37 @@ export default function InstancesGrid() {
       toast.error(`Failed to stop instance: ${error.message}`)
     },
   })
+  
+  const modifyInstanceTypeMutation = useMutation({
+    mutationFn: async ({ instanceId, instanceType }: { instanceId: string; instanceType: string }) => {
+      if (!awsService) throw new Error('AWS service not initialized')
+      await awsService.modifyInstanceType(instanceId, instanceType)
+    },
+    onSuccess: () => {
+      toast.success('Instance type modified successfully')
+      setIsModifyTypeDialogOpen(false)
+      setSelectedInstance(null)
+      queryClient.invalidateQueries({ queryKey: ['instances', selectedRegion] })
+    },
+    onError: (error: Error & { code?: string }) => {
+      if (error.code === 'IncorrectInstanceState') {
+        toast.error('Instance must be stopped to modify its type')
+      } else if (error.code === 'InvalidInstanceAttributeValue') {
+        toast.error('Invalid instance type')
+      } else {
+        toast.error(`Failed to modify instance type: ${error.message}`)
+      }
+    },
+  })
+  
+  const handleModifyInstanceType = (instanceId: string, newType: string) => {
+    modifyInstanceTypeMutation.mutate({ instanceId, instanceType: newType })
+  }
+  
+  const handleOpenModifyDialog = (instance: EC2Instance) => {
+    setSelectedInstance(instance)
+    setIsModifyTypeDialogOpen(true)
+  }
   
   // Stats
   const stats = {
@@ -117,9 +152,9 @@ export default function InstancesGrid() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Stopped</p>
-                <p className="text-2xl font-bold text-gray-600">{stats.stopped}</p>
+                <p className="text-2xl font-bold text-red-600">{stats.stopped}</p>
               </div>
-              <StopIcon className="h-8 w-8 text-gray-600/50" />
+              <StopIcon className="h-8 w-8 text-red-600/50" />
             </div>
           </CardContent>
         </Card>
@@ -158,12 +193,22 @@ export default function InstancesGrid() {
               instance={instance}
               onStart={startInstanceMutation.mutate}
               onStop={stopInstanceMutation.mutate}
+              onModifyType={handleOpenModifyDialog}
               isStarting={startInstanceMutation.isPending}
               isStopping={stopInstanceMutation.isPending}
             />
           ))}
         </div>
       )}
+      
+      {/* Modify Instance Type Dialog */}
+      <ModifyInstanceTypeDialog
+        open={isModifyTypeDialogOpen}
+        onOpenChange={setIsModifyTypeDialogOpen}
+        instance={selectedInstance}
+        onConfirm={handleModifyInstanceType}
+        isModifying={modifyInstanceTypeMutation.isPending}
+      />
     </div>
   )
 }
