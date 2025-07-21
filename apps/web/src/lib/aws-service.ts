@@ -128,6 +128,11 @@ export class AWSService {
         reservation.Instances?.forEach(instance => {
           const nameTag = instance.Tags?.find(tag => tag.Key === 'Name')
           
+          // Log unusual instance IDs for debugging
+          if (instance.InstanceId && !instance.InstanceId.startsWith('i-')) {
+            console.warn('Unusual instance ID detected:', instance.InstanceId)
+          }
+          
           instances.push({
             instanceId: instance.InstanceId || '',
             instanceName: nameTag?.Value || 'Unnamed',
@@ -227,6 +232,13 @@ export class AWSService {
   async startSessionManager(instanceId: string): Promise<SessionManagerUrl> {
     if (!this.ssm) throw new Error('SSM client not initialized')
     
+    // Validate instance ID format
+    if (!instanceId || !instanceId.startsWith('i-')) {
+      throw new Error(`Invalid instance ID format for Session Manager: ${instanceId}. EC2 instance IDs should start with 'i-'`)
+    }
+    
+    console.log('Starting Session Manager for instance:', instanceId)
+    
     try {
       // First check if SSM agent is installed and running on the instance
       const instanceInfo = await this.ssm.describeInstanceInformation({
@@ -239,29 +251,32 @@ export class AWSService {
       }).promise()
       
       if (!instanceInfo.InstanceInformationList || instanceInfo.InstanceInformationList.length === 0) {
-        throw new Error('SSM agent is not installed or not running on this instance. Please ensure the instance has SSM agent installed and has the necessary IAM role attached.')
+        console.warn('Instance not found in SSM:', instanceId)
+        // Still generate the URL - the instance might be available even if not showing in the list
       }
       
-      // Start a session
-      const response = await this.ssm.startSession({
-        Target: instanceId,
-        DocumentName: 'AWS-StartSSHSession'
-      }).promise()
-      
-      if (!response.SessionId) {
-        throw new Error('Failed to start session')
-      }
-      
-      // Generate the Session Manager console URL
+      // Generate the Session Manager console URL directly with instance ID
       const region = AWS.config.region
-      const sessionUrl = `https://${region}.console.aws.amazon.com/systems-manager/session-manager/${response.SessionId}?region=${region}`
+      const sessionUrl = `https://${region}.console.aws.amazon.com/systems-manager/session-manager/${instanceId}?region=${region}`
+      
+      console.log('Generated Session Manager URL:', sessionUrl)
       
       return {
         url: sessionUrl,
-        sessionId: response.SessionId
+        sessionId: instanceId // Use instance ID instead of creating a session
       }
     } catch (error) {
-      console.error('Error starting Session Manager session:', error)
+      console.error('Error checking Session Manager availability:', error)
+      // If it's just a check failure, still return the URL
+      if (error instanceof Error && error.message.includes('InstanceInformationList')) {
+        const region = AWS.config.region
+        const sessionUrl = `https://${region}.console.aws.amazon.com/systems-manager/session-manager/${instanceId}?region=${region}`
+        
+        return {
+          url: sessionUrl,
+          sessionId: instanceId
+        }
+      }
       throw error
     }
   }
@@ -364,6 +379,11 @@ export class AWSService {
   async getInstanceDetails(instanceId: string): Promise<EC2InstanceDetails> {
     if (!this.ec2) throw new Error('EC2 client not initialized')
     
+    // Validate instance ID format
+    if (!instanceId.startsWith('i-')) {
+      throw new Error(`Invalid instance ID format: ${instanceId}. EC2 instance IDs should start with 'i-'`)
+    }
+    
     try {
       const response = await this.ec2.describeInstances({
         InstanceIds: [instanceId]
@@ -410,8 +430,8 @@ export class AWSService {
           volumeId: bdm.Ebs?.VolumeId,
           status: bdm.Ebs?.Status,
           deleteOnTermination: bdm.Ebs?.DeleteOnTermination,
-          volumeSize: bdm.Ebs?.VolumeSize,
-          volumeType: bdm.Ebs?.VolumeType
+          volumeSize: undefined, // VolumeSize is not available in EbsInstanceBlockDevice
+          volumeType: undefined  // VolumeType is not available in EbsInstanceBlockDevice
         })),
         monitoring: instance.Monitoring?.State === 'enabled',
         cpuOptions: {
