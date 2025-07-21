@@ -30,6 +30,7 @@ import { AWSService, EC2Instance } from '@/lib/aws-service';
 import useStore, { getDecryptedCredentials } from '@/store/useStore';
 import { cn } from '@/lib/utils';
 import ModifyInstanceTypeDialog from './modify-instance-type-dialog';
+import InstanceDetailsDialog from './instance-details-dialog';
 
 const getStatusConfig = (status: string) => {
   switch (status) {
@@ -78,6 +79,7 @@ export default function InstancesView() {
     null,
   );
   const [isModifyTypeDialogOpen, setIsModifyTypeDialogOpen] = useState(false);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const {
@@ -163,6 +165,11 @@ export default function InstancesView() {
 
   const handleModifyInstanceType = (instanceId: string, newType: string) => {
     modifyInstanceTypeMutation.mutate({ instanceId, instanceType: newType });
+  };
+
+  const handleFetchDetails = async (instanceId: string) => {
+    if (!awsService) throw new Error('AWS service not initialized');
+    return awsService.getInstanceDetails(instanceId);
   };
 
   // Statistics
@@ -307,7 +314,14 @@ export default function InstancesView() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setSelectedInstance(instance);
+                            setIsDetailsDialogOpen(true);
+                          }}
+                        >
+                          View Details
+                        </DropdownMenuItem>
                         <DropdownMenuItem>Monitoring Metrics</DropdownMenuItem>
                         <DropdownMenuItem>Connect Terminal</DropdownMenuItem>
                         <DropdownMenuSeparator />
@@ -443,6 +457,17 @@ export default function InstancesView() {
         instance={selectedInstance}
         onConfirm={handleModifyInstanceType}
         isModifying={modifyInstanceTypeMutation.isPending}
+      />
+
+      {/* Instance Details Dialog */}
+      <InstanceDetailsDialog
+        instance={selectedInstance}
+        isOpen={isDetailsDialogOpen}
+        onClose={() => {
+          setIsDetailsDialogOpen(false);
+          setSelectedInstance(null);
+        }}
+        onFetchDetails={handleFetchDetails}
       />
     </div>
   );
