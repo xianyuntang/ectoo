@@ -33,7 +33,7 @@ interface ModifyInstanceTypeDialogProps {
   isModifying?: boolean
 }
 
-// 手動添加 T4g 系列實例類型（作為備用）
+// Manually add T4g series instance types (as backup)
 const T4G_INSTANCE_TYPES = [
   { value: 't4g.nano', label: 't4g.nano (2 vCPU, 0.5 GB)', vcpu: 2, memory: 0.5 },
   { value: 't4g.micro', label: 't4g.micro (2 vCPU, 1 GB)', vcpu: 2, memory: 1 },
@@ -54,7 +54,7 @@ export default function ModifyInstanceTypeDialog({
   const [selectedType, setSelectedType] = useState<string>('')
   const { credentials, selectedRegion } = useStore()
   
-  // 獲取所有可用的實例類型
+  // Get all available instance types
   const { data: instanceTypes, isLoading } = useQuery({
     queryKey: ['instanceTypes', selectedRegion],
     queryFn: async () => {
@@ -66,13 +66,13 @@ export default function ModifyInstanceTypeDialog({
       const service = new AWSService(decryptedCreds, selectedRegion)
       const types = await service.getInstanceTypes()
       
-      // 組織實例類型數據
+      // Organize instance type data
       const typeGroups: Record<string, Array<{value: string, label: string, vcpu: number, memory: number}>> = {}
       
       types.forEach(type => {
         if (!type.InstanceType) return
         
-        // 提取系列名稱 (例如 t2, t3, t4g, c5, r5 等)
+        // Extract series name (e.g., t2, t3, t4g, c5, r5, etc.)
         const family = type.InstanceType.split('.')[0]
         
         if (!typeGroups[family]) {
@@ -90,7 +90,7 @@ export default function ModifyInstanceTypeDialog({
         })
       })
       
-      // 按 vCPU 和內存排序
+      // Sort by vCPU and memory
       Object.keys(typeGroups).forEach(family => {
         typeGroups[family].sort((a, b) => {
           if (a.vcpu !== b.vcpu) return a.vcpu - b.vcpu
@@ -98,7 +98,7 @@ export default function ModifyInstanceTypeDialog({
         })
       })
       
-      // 確保包含 T4g 系列
+      // Ensure T4g series is included
       if (!typeGroups['t4g'] || typeGroups['t4g'].length === 0) {
         typeGroups['t4g'] = T4G_INSTANCE_TYPES
       }
@@ -106,7 +106,7 @@ export default function ModifyInstanceTypeDialog({
       return typeGroups
     },
     enabled: open && !!credentials,
-    staleTime: 1000 * 60 * 60, // 緩存 1 小時
+    staleTime: 1000 * 60 * 60, // Cache for 1 hour
   })
   
   const handleConfirm = () => {
@@ -131,21 +131,21 @@ export default function ModifyInstanceTypeDialog({
 
   if (!instance) return null
 
-  // 獲取實例類型的系列分類名稱
+  // Get instance type series classification name
   const getInstanceFamilyName = (family: string): string => {
     const familyNames: Record<string, string> = {
-      't2': 'T2 - 通用型 (Intel)',
-      't3': 'T3 - 通用型 (Intel)',
-      't3a': 'T3a - 通用型 (AMD)',
-      't4g': 'T4g - 通用型 (ARM)',
-      'c5': 'C5 - 計算優化 (Intel)',
-      'c5n': 'C5n - 網絡優化 (Intel)',
-      'c6g': 'C6g - 計算優化 (ARM)',
-      'r5': 'R5 - 內存優化 (Intel)',
-      'r6g': 'R6g - 內存優化 (ARM)',
-      'm5': 'M5 - 平衡型 (Intel)',
-      'm6g': 'M6g - 平衡型 (ARM)',
-      'i3': 'I3 - 存儲優化',
+      't2': 'T2 - General Purpose (Intel)',
+      't3': 'T3 - General Purpose (Intel)',
+      't3a': 'T3a - General Purpose (AMD)',
+      't4g': 'T4g - General Purpose (ARM)',
+      'c5': 'C5 - Compute Optimized (Intel)',
+      'c5n': 'C5n - Network Optimized (Intel)',
+      'c6g': 'C6g - Compute Optimized (ARM)',
+      'r5': 'R5 - Memory Optimized (Intel)',
+      'r6g': 'R6g - Memory Optimized (ARM)',
+      'm5': 'M5 - Balanced (Intel)',
+      'm6g': 'M6g - Balanced (ARM)',
+      'i3': 'I3 - Storage Optimized',
     }
     return familyNames[family] || family.toUpperCase()
   }
@@ -154,9 +154,9 @@ export default function ModifyInstanceTypeDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>修改實例類型</DialogTitle>
+          <DialogTitle>Modify Instance Type</DialogTitle>
           <DialogDescription>
-            更改 {instance.instanceName} ({instance.instanceId}) 的實例類型
+            Change instance type for {instance.instanceName} ({instance.instanceId})
           </DialogDescription>
         </DialogHeader>
         
@@ -164,30 +164,30 @@ export default function ModifyInstanceTypeDialog({
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              <strong>注意：</strong>實例必須處於停止狀態才能修改類型。修改後需要重新啟動實例。
+              <strong>Note:</strong> Instance must be in stopped state to modify type. Instance needs to be restarted after modification.
             </AlertDescription>
           </Alert>
           
           <div className="space-y-2">
-            <Label>當前實例類型</Label>
+            <Label>Current Instance Type</Label>
             <div className="p-2 rounded-md bg-muted font-mono text-sm">
               {instance.instanceType}
             </div>
           </div>
           
           <div className="space-y-2">
-            <Label>新實例類型</Label>
+            <Label>New Instance Type</Label>
             {isLoading ? (
               <Skeleton className="h-10 w-full" />
             ) : (
               <Select value={selectedType} onValueChange={setSelectedType}>
                 <SelectTrigger>
-                  <SelectValue placeholder="選擇新的實例類型" />
+                  <SelectValue placeholder="Select new instance type" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px] overflow-y-auto">
                   {instanceTypes && Object.entries(instanceTypes)
                     .sort(([a], [b]) => {
-                      // T4g 系列優先顯示
+                      // T4g series displayed first
                       if (a === 't4g') return -1
                       if (b === 't4g') return 1
                       return a.localeCompare(b)
@@ -220,7 +220,7 @@ export default function ModifyInstanceTypeDialog({
             onClick={() => handleOpenChange(false)}
             disabled={isModifying}
           >
-            取消
+            Cancel
           </Button>
           <Button
             onClick={handleConfirm}
@@ -229,10 +229,10 @@ export default function ModifyInstanceTypeDialog({
             {isModifying ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                修改中...
+                Modifying...
               </>
             ) : (
-              '確認修改'
+              'Confirm'
             )}
           </Button>
         </DialogFooter>

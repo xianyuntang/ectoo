@@ -85,46 +85,48 @@ export default function InstanceCard({
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
-          <div className="space-y-1 flex-1">
-            <h3 className="font-semibold text-lg leading-none tracking-tight">
-              {instance.instanceName}
-            </h3>
-            <p className="text-sm text-muted-foreground font-mono">
-              {instance.instanceId}
-            </p>
-          </div>
-          <div className="flex items-start gap-2">
-            <div className={cn(
-              "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium",
-              statusConfig.bgColor,
-              statusConfig.textColor
-            )}>
-              <span className={cn("h-1.5 w-1.5 rounded-full", statusConfig.color)} />
-              {statusConfig.label}
+          <div className="space-y-2 flex-1">
+            <div className="flex items-start justify-between">
+              <div className="space-y-1">
+                <h3 className="font-semibold text-lg leading-none tracking-tight">
+                  {instance.instanceName}
+                </h3>
+                <p className="text-sm text-muted-foreground font-mono">
+                  {instance.instanceId}
+                </p>
+                <div className={cn(
+                  "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium mt-2",
+                  statusConfig.bgColor,
+                  statusConfig.textColor
+                )}>
+                  <span className={cn("h-1.5 w-1.5 rounded-full", statusConfig.color)} />
+                  {statusConfig.label}
+                </div>
+              </div>
+              {onModifyType && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2 -mt-1">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem>View Details</DropdownMenuItem>
+                    <DropdownMenuItem>Monitor Metrics</DropdownMenuItem>
+                    <DropdownMenuItem>Connect Terminal</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => onModifyType(instance)}
+                      disabled={instance.state !== 'stopped'}
+                    >
+                      <Settings2 className="h-4 w-4 mr-2" />
+                      Modify Instance Type
+                      {instance.state !== 'stopped' && ' (Stop instance first)'}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
-            {onModifyType && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem>View Details</DropdownMenuItem>
-                  <DropdownMenuItem>Monitor Metrics</DropdownMenuItem>
-                  <DropdownMenuItem>Connect Terminal</DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    onClick={() => onModifyType(instance)}
-                    disabled={instance.state !== 'stopped'}
-                  >
-                    <Settings2 className="h-4 w-4 mr-2" />
-                    Modify Instance Type
-                    {instance.state !== 'stopped' && ' (Stop instance first)'}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
           </div>
         </div>
       </CardHeader>

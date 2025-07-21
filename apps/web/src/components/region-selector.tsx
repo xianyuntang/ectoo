@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { AWSService } from '@/lib/aws-service'
 import useStore, { getDecryptedCredentials } from '@/store/useStore'
 
-// 預設的 AWS 區域列表（備用）
+// Default AWS region list (backup)
 const DEFAULT_REGIONS = [
   'us-east-1', 'us-east-2', 'us-west-1', 'us-west-2',
   'eu-west-1', 'eu-west-2', 'eu-west-3', 'eu-central-1',
@@ -42,7 +42,7 @@ export default function RegionSelector() {
     return <Skeleton className="w-[200px] h-10" />
   }
   
-  // 如果載入失敗，使用預設區域列表
+  // If loading fails, use default region list
   const regionList = regions && regions.length > 0 
     ? regions.map(r => r.regionName).sort() 
     : DEFAULT_REGIONS

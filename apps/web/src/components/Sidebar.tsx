@@ -33,11 +33,11 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   }
   
   const menuItems = [
-    { id: 'instances', label: 'EC2 實例', icon: Server },
-    { id: 'monitoring', label: '監控指標', icon: Activity },
-    { id: 'security', label: '安全群組', icon: Shield },
-    { id: 'billing', label: '費用分析', icon: CreditCard },
-    { id: 'analytics', label: '使用統計', icon: BarChart3 },
+    { id: 'instances', label: 'EC2 Instances', icon: Server },
+    { id: 'monitoring', label: 'Monitoring Metrics', icon: Activity },
+    { id: 'security', label: 'Security Groups', icon: Shield },
+    { id: 'billing', label: 'Cost Analysis', icon: CreditCard },
+    { id: 'analytics', label: 'Usage Statistics', icon: BarChart3 },
   ]
   
   return (
@@ -57,7 +57,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             </div>
             <div>
               <h2 className="text-xl font-bold">EC2 Monitor</h2>
-              <p className="text-xs text-muted-foreground">AWS 管理平台</p>
+              <p className="text-xs text-muted-foreground">AWS Management Platform</p>
             </div>
           </div>
           
@@ -112,7 +112,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             )}
           >
             <Settings className="h-5 w-5 flex-shrink-0" />
-            {!collapsed && <span className="font-medium">設定</span>}
+            {!collapsed && <span className="font-medium">Settings</span>}
           </button>
           
           <button
@@ -124,7 +124,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             )}
           >
             <LogOut className="h-5 w-5 flex-shrink-0" />
-            {!collapsed && <span className="font-medium">登出</span>}
+            {!collapsed && <span className="font-medium">Logout</span>}
           </button>
         </div>
       </div>

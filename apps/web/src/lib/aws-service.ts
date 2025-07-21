@@ -32,7 +32,7 @@ export class AWSService {
     if (!this.ec2) throw new Error('EC2 client not initialized')
     
     try {
-      // 獲取所有區域，包括被禁用的區域
+      // Get all regions, including disabled regions
       const response = await this.ec2.describeRegions({
         AllRegions: true,
         Filters: [
@@ -43,7 +43,7 @@ export class AWSService {
         ]
       }).promise()
       
-      // 過濾並排序區域
+      // Filter and sort regions
       const regions = response.Regions?.map(region => ({
         regionName: region.RegionName || '',
         regionEndpoint: region.Endpoint || ''
@@ -136,7 +136,7 @@ export class AWSService {
       const allTypes: AWS.EC2.InstanceTypeInfo[] = []
       let nextToken: string | undefined
       
-      // 分頁獲取所有實例類型
+      // Get all instance types with pagination
       do {
         const response = await this.ec2.describeInstanceTypes({
           NextToken: nextToken,

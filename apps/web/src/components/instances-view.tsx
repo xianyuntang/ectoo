@@ -34,13 +34,13 @@ import ModifyInstanceTypeDialog from './modify-instance-type-dialog'
 const getStatusConfig = (status: string) => {
   switch (status) {
     case 'running':
-      return { color: 'bg-green-500', bgColor: 'bg-green-500/10', textColor: 'text-green-700 dark:text-green-400', label: '運行中' }
+      return { color: 'bg-green-500', bgColor: 'bg-green-500/10', textColor: 'text-green-700 dark:text-green-400', label: 'Running' }
     case 'stopped':
-      return { color: 'bg-red-500', bgColor: 'bg-red-500/10', textColor: 'text-red-700 dark:text-red-400', label: '已停止' }
+      return { color: 'bg-red-500', bgColor: 'bg-red-500/10', textColor: 'text-red-700 dark:text-red-400', label: 'Stopped' }
     case 'pending':
-      return { color: 'bg-yellow-500', bgColor: 'bg-yellow-500/10', textColor: 'text-yellow-700 dark:text-yellow-400', label: '啟動中' }
+      return { color: 'bg-yellow-500', bgColor: 'bg-yellow-500/10', textColor: 'text-yellow-700 dark:text-yellow-400', label: 'Starting' }
     case 'stopping':
-      return { color: 'bg-orange-500', bgColor: 'bg-orange-500/10', textColor: 'text-orange-700 dark:text-orange-400', label: '停止中' }
+      return { color: 'bg-orange-500', bgColor: 'bg-orange-500/10', textColor: 'text-orange-700 dark:text-orange-400', label: 'Stopping' }
     default:
       return { color: 'bg-gray-500', bgColor: 'bg-gray-500/10', textColor: 'text-gray-700 dark:text-gray-400', label: status }
   }
@@ -75,11 +75,11 @@ export default function InstancesView() {
       await awsService.startInstance(instanceId)
     },
     onSuccess: () => {
-      toast.success('實例啟動指令已發送')
+      toast.success('Instance start command sent')
       setTimeout(() => refetch(), 2000)
     },
     onError: (error) => {
-      toast.error(`啟動失敗: ${error.message}`)
+      toast.error(`Start failed: ${error.message}`)
     },
   })
   
@@ -89,11 +89,11 @@ export default function InstancesView() {
       await awsService.stopInstance(instanceId)
     },
     onSuccess: () => {
-      toast.success('實例停止指令已發送')
+      toast.success('Instance stop command sent')
       setTimeout(() => refetch(), 2000)
     },
     onError: (error) => {
-      toast.error(`停止失敗: ${error.message}`)
+      toast.error(`Stop failed: ${error.message}`)
     },
   })
   
@@ -103,20 +103,20 @@ export default function InstancesView() {
       await awsService.modifyInstanceType(instanceId, instanceType)
     },
     onSuccess: () => {
-      toast.success('實例類型修改成功')
+      toast.success('Instance type modified successfully')
       setIsModifyTypeDialogOpen(false)
       setSelectedInstance(null)
-      // 立即刷新數據
+      // Refresh data immediately
       queryClient.invalidateQueries({ queryKey: ['instances', selectedRegion] })
     },
     onError: (error: Error & { code?: string }) => {
-      // 處理特定錯誤
+      // Handle specific errors
       if (error.code === 'IncorrectInstanceState') {
-        toast.error('實例必須處於停止狀態才能修改類型')
+        toast.error('Instance must be in stopped state to modify type')
       } else if (error.code === 'InvalidInstanceAttributeValue') {
-        toast.error('無效的實例類型')
+        toast.error('Invalid instance type')
       } else {
-        toast.error(`修改失敗: ${error.message}`)
+        toast.error(`Modification failed: ${error.message}`)
       }
     },
   })
@@ -125,7 +125,7 @@ export default function InstancesView() {
     modifyInstanceTypeMutation.mutate({ instanceId, instanceType: newType })
   }
   
-  // 統計數據
+  // Statistics
   const stats = {
     total: instances?.length || 0,
     running: instances?.filter(i => i.state === 'running').length || 0,
@@ -151,13 +151,13 @@ export default function InstancesView() {
   
   return (
     <div className="space-y-6">
-      {/* 統計卡片 */}
+      {/* Statistics cards */}
       <div className="grid grid-cols-4 gap-4">
         <Card className="border-0 shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">總實例數</p>
+                <p className="text-sm text-muted-foreground">Total Instances</p>
                 <p className="text-3xl font-bold mt-1">{stats.total}</p>
               </div>
               <div className="p-3 rounded-full bg-primary/10">
@@ -171,7 +171,7 @@ export default function InstancesView() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">運行中</p>
+                <p className="text-sm text-muted-foreground">Running</p>
                 <p className="text-3xl font-bold mt-1 text-green-600">{stats.running}</p>
               </div>
               <div className="p-3 rounded-full bg-green-500/10">
@@ -185,7 +185,7 @@ export default function InstancesView() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">已停止</p>
+                <p className="text-sm text-muted-foreground">Stopped</p>
                 <p className="text-3xl font-bold mt-1 text-red-600">{stats.stopped}</p>
               </div>
               <div className="p-3 rounded-full bg-red-500/10">
@@ -199,7 +199,7 @@ export default function InstancesView() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">當前區域</p>
+                <p className="text-sm text-muted-foreground">Current Region</p>
                 <p className="text-2xl font-bold mt-1">{selectedRegion}</p>
               </div>
               <div className="p-3 rounded-full bg-blue-500/10">
@@ -210,9 +210,9 @@ export default function InstancesView() {
         </Card>
       </div>
       
-      {/* 操作欄 */}
+      {/* Action bar */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">實例列表</h2>
+        <h2 className="text-xl font-semibold">Instance List</h2>
         <Button 
           variant="outline" 
           size="sm"
@@ -220,18 +220,18 @@ export default function InstancesView() {
           disabled={isRefetching}
         >
           <RefreshCw className={cn("h-4 w-4 mr-2", isRefetching && "animate-spin")} />
-          {isRefetching ? '刷新中...' : '刷新'}
+          {isRefetching ? 'Refreshing...' : 'Refresh'}
         </Button>
       </div>
       
-      {/* 實例卡片網格 */}
+      {/* Instance cards grid */}
       <div className="grid grid-cols-2 gap-6">
         {instances?.length === 0 ? (
           <Card className="col-span-2 border-0 shadow-sm">
             <CardContent className="p-12 text-center">
               <Server className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-lg font-medium text-muted-foreground">
-                此區域沒有 EC2 實例
+                No EC2 instances in this region
               </p>
             </CardContent>
           </Card>
@@ -258,9 +258,9 @@ export default function InstancesView() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>查看詳情</DropdownMenuItem>
-                        <DropdownMenuItem>監控指標</DropdownMenuItem>
-                        <DropdownMenuItem>連接終端</DropdownMenuItem>
+                        <DropdownMenuItem>View Details</DropdownMenuItem>
+                        <DropdownMenuItem>Monitoring Metrics</DropdownMenuItem>
+                        <DropdownMenuItem>Connect Terminal</DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem 
                           onClick={() => {
@@ -271,8 +271,8 @@ export default function InstancesView() {
                           disabled={instance.state !== 'stopped'}
                         >
                           <Settings2 className="h-4 w-4 mr-2" />
-                          修改實例類型
-                          {instance.state !== 'stopped' && ' (需要先停止實例)'}
+                          Modify Instance Type
+                          {instance.state !== 'stopped' && ' (Stop instance first)'}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -289,14 +289,14 @@ export default function InstancesView() {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <p className="text-muted-foreground mb-1">實例類型</p>
+                      <p className="text-muted-foreground mb-1">Instance Type</p>
                       <div className="flex items-center gap-2">
                         <Cpu className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium">{instance.instanceType}</span>
                       </div>
                     </div>
                     <div>
-                      <p className="text-muted-foreground mb-1">啟動時間</p>
+                      <p className="text-muted-foreground mb-1">Launch Time</p>
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium">
@@ -305,20 +305,20 @@ export default function InstancesView() {
                       </div>
                     </div>
                     <div>
-                      <p className="text-muted-foreground mb-1">公有 IP</p>
+                      <p className="text-muted-foreground mb-1">Public IP</p>
                       <div className="flex items-center gap-2">
                         <Globe className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium font-mono text-xs">
-                          {instance.publicIp || '無'}
+                          {instance.publicIp || 'None'}
                         </span>
                       </div>
                     </div>
                     <div>
-                      <p className="text-muted-foreground mb-1">私有 IP</p>
+                      <p className="text-muted-foreground mb-1">Private IP</p>
                       <div className="flex items-center gap-2">
                         <HardDrive className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium font-mono text-xs">
-                          {instance.privateIp || '無'}
+                          {instance.privateIp || 'None'}
                         </span>
                       </div>
                     </div>
@@ -333,7 +333,7 @@ export default function InstancesView() {
                         disabled={startInstanceMutation.isPending}
                       >
                         <Play className="h-4 w-4 mr-2" />
-                        啟動實例
+                        Start Instance
                       </Button>
                     )}
                     {instance.state === 'running' && (
@@ -345,13 +345,13 @@ export default function InstancesView() {
                         disabled={stopInstanceMutation.isPending}
                       >
                         <Square className="h-4 w-4 mr-2" />
-                        停止實例
+                        Stop Instance
                       </Button>
                     )}
                     {(instance.state === 'pending' || instance.state === 'stopping') && (
                       <Button size="sm" className="flex-1" disabled>
                         <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                        處理中...
+                        Processing...
                       </Button>
                     )}
                   </div>
@@ -362,7 +362,7 @@ export default function InstancesView() {
         )}
       </div>
       
-      {/* 修改實例類型對話框 */}
+      {/* Modify instance type dialog */}
       <ModifyInstanceTypeDialog
         open={isModifyTypeDialogOpen}
         onOpenChange={setIsModifyTypeDialogOpen}
