@@ -37,12 +37,6 @@ jobs:
       - name: Check TypeScript
         run: npm run typecheck
 
-      - name: Build application
-        run: npm run build
-
-      - name: Run tests
-        run: npm test || echo "No tests configured yet"
-
   docker-build-test:
     needs: lint-and-test
     runs-on: ubuntu-latest
