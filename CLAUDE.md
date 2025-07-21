@@ -88,6 +88,15 @@ The IAM user must have these EC2 permissions:
 - ec2:ModifyInstanceAttribute
 - ec2:DescribeInstanceTypes
 
+For Session Manager (terminal connection) functionality:
+- ssm:StartSession
+- ssm:TerminateSession
+- ssm:DescribeInstanceInformation
+
+The EC2 instances must also have:
+- SSM Agent installed and running
+- An IAM role attached with AmazonSSMManagedInstanceCore policy
+
 ## Important Files
 
 - `/spec.md` - Complete project specification

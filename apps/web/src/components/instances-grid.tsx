@@ -12,12 +12,14 @@ import useStore, { getDecryptedCredentials } from '@/store/useStore'
 import { cn } from '@/lib/utils'
 import InstanceCard from './instance-card'
 import ModifyInstanceTypeDialog from './modify-instance-type-dialog'
+import TerminalDialog from './terminal-dialog'
 
 export default function InstancesGrid() {
   const { credentials, selectedRegion } = useStore()
   const [awsService, setAwsService] = useState<AWSService | null>(null)
   const [selectedInstance, setSelectedInstance] = useState<EC2Instance | null>(null)
   const [isModifyTypeDialogOpen, setIsModifyTypeDialogOpen] = useState(false)
+  const [isTerminalDialogOpen, setIsTerminalDialogOpen] = useState(false)
   const queryClient = useQueryClient()
   
   const { data: instances, isLoading, refetch, isRefetching } = useQuery({
@@ -93,6 +95,16 @@ export default function InstancesGrid() {
   const handleOpenModifyDialog = (instance: EC2Instance) => {
     setSelectedInstance(instance)
     setIsModifyTypeDialogOpen(true)
+  }
+  
+  const handleOpenTerminal = (instance: EC2Instance) => {
+    setSelectedInstance(instance)
+    setIsTerminalDialogOpen(true)
+  }
+  
+  const handleConnectTerminal = async (instanceId: string) => {
+    if (!awsService) throw new Error('AWS service not initialized')
+    return awsService.startSessionManager(instanceId)
   }
   
   // Stats
@@ -194,6 +206,7 @@ export default function InstancesGrid() {
               onStart={startInstanceMutation.mutate}
               onStop={stopInstanceMutation.mutate}
               onModifyType={handleOpenModifyDialog}
+              onConnectTerminal={handleOpenTerminal}
               isStarting={startInstanceMutation.isPending}
               isStopping={stopInstanceMutation.isPending}
             />
@@ -208,6 +221,17 @@ export default function InstancesGrid() {
         instance={selectedInstance}
         onConfirm={handleModifyInstanceType}
         isModifying={modifyInstanceTypeMutation.isPending}
+      />
+      
+      {/* Terminal Dialog */}
+      <TerminalDialog
+        instance={selectedInstance}
+        isOpen={isTerminalDialogOpen}
+        onClose={() => {
+          setIsTerminalDialogOpen(false)
+          setSelectedInstance(null)
+        }}
+        onConnect={handleConnectTerminal}
       />
     </div>
   )

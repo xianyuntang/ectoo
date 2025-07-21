@@ -27,6 +27,7 @@ interface InstanceCardProps {
   onStart: (instanceId: string) => void
   onStop: (instanceId: string) => void
   onModifyType?: (instance: EC2Instance) => void
+  onConnectTerminal?: (instance: EC2Instance) => void
   isStarting?: boolean
   isStopping?: boolean
 }
@@ -76,6 +77,7 @@ export default function InstanceCard({
   onStart, 
   onStop, 
   onModifyType,
+  onConnectTerminal,
   isStarting, 
   isStopping 
 }: InstanceCardProps) {
@@ -113,7 +115,13 @@ export default function InstanceCard({
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem>View Details</DropdownMenuItem>
                     <DropdownMenuItem>Monitor Metrics</DropdownMenuItem>
-                    <DropdownMenuItem>Connect Terminal</DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => onConnectTerminal && onConnectTerminal(instance)}
+                      disabled={instance.state !== 'running'}
+                    >
+                      Connect Terminal
+                      {instance.state !== 'running' && ' (Start instance first)'}
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
                       onClick={() => onModifyType(instance)}

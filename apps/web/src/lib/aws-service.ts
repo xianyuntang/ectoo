@@ -15,8 +15,14 @@ export interface AWSRegion {
   regionEndpoint: string
 }
 
+export interface SessionManagerUrl {
+  url: string
+  sessionId: string
+}
+
 export class AWSService {
   private ec2: AWS.EC2 | null = null
+  private ssm: AWS.SSM | null = null
   
   constructor(credentials: { accessKeyId: string; secretAccessKey: string }, region: string) {
     AWS.config.update({
@@ -26,6 +32,7 @@ export class AWSService {
     })
     
     this.ec2 = new AWS.EC2()
+    this.ssm = new AWS.SSM()
   }
   
   async getRegions(): Promise<AWSRegion[]> {
@@ -160,5 +167,61 @@ export class AWSService {
   changeRegion(region: string): void {
     AWS.config.update({ region })
     this.ec2 = new AWS.EC2()
+    this.ssm = new AWS.SSM()
+  }
+  
+  async startSessionManager(instanceId: string): Promise<SessionManagerUrl> {
+    if (!this.ssm) throw new Error('SSM client not initialized')
+    
+    try {
+      // First check if SSM agent is installed and running on the instance
+      const instanceInfo = await this.ssm.describeInstanceInformation({
+        Filters: [
+          {
+            Key: 'InstanceIds',
+            Values: [instanceId]
+          }
+        ]
+      }).promise()
+      
+      if (!instanceInfo.InstanceInformationList || instanceInfo.InstanceInformationList.length === 0) {
+        throw new Error('SSM agent is not installed or not running on this instance. Please ensure the instance has SSM agent installed and has the necessary IAM role attached.')
+      }
+      
+      // Start a session
+      const response = await this.ssm.startSession({
+        Target: instanceId,
+        DocumentName: 'AWS-StartSSHSession'
+      }).promise()
+      
+      if (!response.SessionId) {
+        throw new Error('Failed to start session')
+      }
+      
+      // Generate the Session Manager console URL
+      const region = AWS.config.region
+      const sessionUrl = `https://${region}.console.aws.amazon.com/systems-manager/session-manager/${response.SessionId}?region=${region}`
+      
+      return {
+        url: sessionUrl,
+        sessionId: response.SessionId
+      }
+    } catch (error) {
+      console.error('Error starting Session Manager session:', error)
+      throw error
+    }
+  }
+  
+  async terminateSession(sessionId: string): Promise<void> {
+    if (!this.ssm) throw new Error('SSM client not initialized')
+    
+    try {
+      await this.ssm.terminateSession({
+        SessionId: sessionId
+      }).promise()
+    } catch (error) {
+      console.error('Error terminating session:', error)
+      throw error
+    }
   }
 }
