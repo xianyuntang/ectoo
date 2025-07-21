@@ -10,6 +10,43 @@ export interface EC2Instance {
   launchTime: Date
 }
 
+export interface EC2InstanceDetails extends EC2Instance {
+  availabilityZone?: string
+  vpcId?: string
+  subnetId?: string
+  architecture?: string
+  hypervisor?: string
+  rootDeviceType?: string
+  rootDeviceName?: string
+  virtualizationType?: string
+  amiId?: string
+  platform?: string
+  publicDnsName?: string
+  privateDnsName?: string
+  keyName?: string
+  securityGroups?: Array<{
+    groupId: string
+    groupName: string
+  }>
+  tags?: Array<{
+    key: string
+    value: string
+  }>
+  blockDeviceMappings?: Array<{
+    deviceName: string
+    volumeId?: string
+    status?: string
+    deleteOnTermination?: boolean
+    volumeSize?: number
+    volumeType?: string
+  }>
+  monitoring?: boolean
+  cpuOptions?: {
+    coreCount?: number
+    threadsPerCore?: number
+  }
+}
+
 export interface AWSRegion {
   regionName: string
   regionEndpoint: string
@@ -320,6 +357,72 @@ export class AWSService {
       }
     } catch (error) {
       console.error('Error fetching instance metrics:', error)
+      throw error
+    }
+  }
+  
+  async getInstanceDetails(instanceId: string): Promise<EC2InstanceDetails> {
+    if (!this.ec2) throw new Error('EC2 client not initialized')
+    
+    try {
+      const response = await this.ec2.describeInstances({
+        InstanceIds: [instanceId]
+      }).promise()
+      
+      if (!response.Reservations?.[0]?.Instances?.[0]) {
+        throw new Error('Instance not found')
+      }
+      
+      const instance = response.Reservations[0].Instances[0]
+      const nameTag = instance.Tags?.find(tag => tag.Key === 'Name')
+      
+      const details: EC2InstanceDetails = {
+        instanceId: instance.InstanceId || '',
+        instanceName: nameTag?.Value || 'Unnamed',
+        instanceType: instance.InstanceType || '',
+        state: instance.State?.Name || 'unknown',
+        publicIp: instance.PublicIpAddress,
+        privateIp: instance.PrivateIpAddress,
+        launchTime: instance.LaunchTime || new Date(),
+        availabilityZone: instance.Placement?.AvailabilityZone,
+        vpcId: instance.VpcId,
+        subnetId: instance.SubnetId,
+        architecture: instance.Architecture,
+        hypervisor: instance.Hypervisor,
+        rootDeviceType: instance.RootDeviceType,
+        rootDeviceName: instance.RootDeviceName,
+        virtualizationType: instance.VirtualizationType,
+        amiId: instance.ImageId,
+        platform: instance.Platform || 'Linux/UNIX',
+        publicDnsName: instance.PublicDnsName,
+        privateDnsName: instance.PrivateDnsName,
+        keyName: instance.KeyName,
+        securityGroups: instance.SecurityGroups?.map(sg => ({
+          groupId: sg.GroupId || '',
+          groupName: sg.GroupName || ''
+        })),
+        tags: instance.Tags?.map(tag => ({
+          key: tag.Key || '',
+          value: tag.Value || ''
+        })),
+        blockDeviceMappings: instance.BlockDeviceMappings?.map(bdm => ({
+          deviceName: bdm.DeviceName || '',
+          volumeId: bdm.Ebs?.VolumeId,
+          status: bdm.Ebs?.Status,
+          deleteOnTermination: bdm.Ebs?.DeleteOnTermination,
+          volumeSize: bdm.Ebs?.VolumeSize,
+          volumeType: bdm.Ebs?.VolumeType
+        })),
+        monitoring: instance.Monitoring?.State === 'enabled',
+        cpuOptions: {
+          coreCount: instance.CpuOptions?.CoreCount,
+          threadsPerCore: instance.CpuOptions?.ThreadsPerCore
+        }
+      }
+      
+      return details
+    } catch (error) {
+      console.error('Error fetching instance details:', error)
       throw error
     }
   }

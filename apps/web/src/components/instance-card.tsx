@@ -29,6 +29,7 @@ interface InstanceCardProps {
   onModifyType?: (instance: EC2Instance) => void
   onConnectTerminal?: (instance: EC2Instance) => void
   onViewMetrics?: (instance: EC2Instance) => void
+  onViewDetails?: (instance: EC2Instance) => void
   isStarting?: boolean
   isStopping?: boolean
 }
@@ -80,6 +81,7 @@ export default function InstanceCard({
   onModifyType,
   onConnectTerminal,
   onViewMetrics,
+  onViewDetails,
   isStarting, 
   isStopping 
 }: InstanceCardProps) {
@@ -115,7 +117,11 @@ export default function InstanceCard({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem>View Details</DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => onViewDetails && onViewDetails(instance)}
+                    >
+                      View Details
+                    </DropdownMenuItem>
                     <DropdownMenuItem 
                       onClick={() => onViewMetrics && onViewMetrics(instance)}
                     >

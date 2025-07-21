@@ -14,6 +14,7 @@ import InstanceCard from './instance-card'
 import ModifyInstanceTypeDialog from './modify-instance-type-dialog'
 import TerminalDialog from './terminal-dialog'
 import MetricsDialog from './metrics-dialog'
+import InstanceDetailsDialog from './instance-details-dialog'
 
 export default function InstancesGrid() {
   const { credentials, selectedRegion } = useStore()
@@ -22,6 +23,7 @@ export default function InstancesGrid() {
   const [isModifyTypeDialogOpen, setIsModifyTypeDialogOpen] = useState(false)
   const [isTerminalDialogOpen, setIsTerminalDialogOpen] = useState(false)
   const [isMetricsDialogOpen, setIsMetricsDialogOpen] = useState(false)
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
   const queryClient = useQueryClient()
   
   const { data: instances, isLoading, refetch, isRefetching } = useQuery({
@@ -117,6 +119,16 @@ export default function InstancesGrid() {
   const handleFetchMetrics = async (instanceId: string, period: number) => {
     if (!awsService) throw new Error('AWS service not initialized')
     return awsService.getInstanceMetrics(instanceId, period)
+  }
+  
+  const handleOpenDetails = (instance: EC2Instance) => {
+    setSelectedInstance(instance)
+    setIsDetailsDialogOpen(true)
+  }
+  
+  const handleFetchDetails = async (instanceId: string) => {
+    if (!awsService) throw new Error('AWS service not initialized')
+    return awsService.getInstanceDetails(instanceId)
   }
   
   // Stats
@@ -220,6 +232,7 @@ export default function InstancesGrid() {
               onModifyType={handleOpenModifyDialog}
               onConnectTerminal={handleOpenTerminal}
               onViewMetrics={handleOpenMetrics}
+              onViewDetails={handleOpenDetails}
               isStarting={startInstanceMutation.isPending}
               isStopping={stopInstanceMutation.isPending}
             />
@@ -256,6 +269,17 @@ export default function InstancesGrid() {
           setSelectedInstance(null)
         }}
         onFetchMetrics={handleFetchMetrics}
+      />
+      
+      {/* Instance Details Dialog */}
+      <InstanceDetailsDialog
+        instance={selectedInstance}
+        isOpen={isDetailsDialogOpen}
+        onClose={() => {
+          setIsDetailsDialogOpen(false)
+          setSelectedInstance(null)
+        }}
+        onFetchDetails={handleFetchDetails}
       />
     </div>
   )
