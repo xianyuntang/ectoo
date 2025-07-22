@@ -11,6 +11,7 @@ import {
   HardDrive,
   MoreVertical,
   Settings2,
+  Copy,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -21,6 +22,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { EC2Instance } from '@/lib/aws-service';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface InstanceCardProps {
   instance: EC2Instance;
@@ -86,6 +88,15 @@ export default function InstanceCard({
   isStopping,
 }: InstanceCardProps) {
   const statusConfig = getStatusConfig(instance.state);
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success('Copied to clipboard!');
+    } catch {
+      toast.error('Failed to copy');
+    }
+  };
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
@@ -190,9 +201,18 @@ export default function InstanceCard({
               <Globe className="h-3 w-3" />
               Public IP
             </p>
-            <p className="font-medium font-mono text-xs">
-              {instance.publicIp || 'None'}
-            </p>
+            {instance.publicIp ? (
+              <button
+                onClick={() => copyToClipboard(instance.publicIp)}
+                className="flex items-center gap-1.5 font-medium font-mono text-xs hover:bg-muted px-1.5 py-0.5 -ml-1.5 rounded transition-colors group"
+                title="Click to copy"
+              >
+                {instance.publicIp}
+                <Copy className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+            ) : (
+              <p className="font-medium font-mono text-xs">None</p>
+            )}
           </div>
 
           <div className="space-y-1">
