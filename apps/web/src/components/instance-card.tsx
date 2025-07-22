@@ -203,7 +203,11 @@ export default function InstanceCard({
             </p>
             {instance.publicIp ? (
               <button
-                onClick={() => copyToClipboard(instance.publicIp)}
+                onClick={() => {
+                  if (instance.publicIp) {
+                    copyToClipboard(instance.publicIp);
+                  }
+                }}
                 className="flex items-center gap-1.5 font-medium font-mono text-xs hover:bg-muted px-1.5 py-0.5 -ml-1.5 rounded transition-colors group"
                 title="Click to copy"
               >
