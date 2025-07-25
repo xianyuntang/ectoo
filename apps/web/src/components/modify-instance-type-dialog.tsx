@@ -21,7 +21,8 @@ import {
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Loader2 } from 'lucide-react';
-import { EC2Instance, AWSService } from '@/lib/aws-service';
+import { EC2Instance } from '@/lib/aws-service';
+import { AWSServiceWrapper } from '@/lib/aws-service-wrapper';
 import useStore, { getDecryptedCredentials } from '@/store/useStore';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -73,17 +74,23 @@ export default function ModifyInstanceTypeDialog({
 }: ModifyInstanceTypeDialogProps) {
   const [selectedType, setSelectedType] = useState<string>('');
   const { credentials, selectedRegion } = useStore();
+  const isBackendMode = process.env.NEXT_PUBLIC_USE_AWS_BACKEND === 'true';
 
   // Get all available instance types
   const { data: instanceTypes, isLoading } = useQuery({
     queryKey: ['instanceTypes', selectedRegion],
     queryFn: async () => {
-      if (!credentials) throw new Error('No credentials');
+      if (!isBackendMode && !credentials) throw new Error('No credentials');
 
-      const decryptedCreds = await getDecryptedCredentials(credentials);
-      if (!decryptedCreds) throw new Error('Failed to decrypt credentials');
-
-      const service = new AWSService(decryptedCreds, selectedRegion);
+      let service: AWSServiceWrapper;
+      if (isBackendMode) {
+        service = new AWSServiceWrapper(undefined, selectedRegion);
+      } else {
+        const decryptedCreds = await getDecryptedCredentials(credentials);
+        if (!decryptedCreds) throw new Error('Failed to decrypt credentials');
+        service = new AWSServiceWrapper(decryptedCreds, selectedRegion);
+      }
+      
       const types = await service.getInstanceTypes();
 
       // Organize instance type data
@@ -130,7 +137,7 @@ export default function ModifyInstanceTypeDialog({
 
       return typeGroups;
     },
-    enabled: open && !!credentials,
+    enabled: open && (isBackendMode || !!credentials),
     staleTime: 1000 * 60 * 60, // Cache for 1 hour
   });
 

@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AWSService } from '@/lib/aws-service';
+import { AWSServiceWrapper } from '@/lib/aws-service-wrapper';
 import useStore, { getDecryptedCredentials } from '@/store/useStore';
 
 // Default AWS region list (backup)
@@ -33,19 +33,25 @@ const DEFAULT_REGIONS = [
 
 export default function RegionSelector() {
   const { credentials, selectedRegion, setSelectedRegion } = useStore();
+  const isBackendMode = process.env.NEXT_PUBLIC_USE_AWS_BACKEND === 'true';
 
   const { data: regions, isLoading } = useQuery({
     queryKey: ['regions'],
     queryFn: async () => {
-      if (!credentials) throw new Error('No credentials');
+      if (!isBackendMode && !credentials) throw new Error('No credentials');
 
-      const decryptedCreds = await getDecryptedCredentials(credentials);
-      if (!decryptedCreds) throw new Error('Failed to decrypt credentials');
-
-      const service = new AWSService(decryptedCreds, selectedRegion);
+      let service: AWSServiceWrapper;
+      if (isBackendMode) {
+        service = new AWSServiceWrapper(undefined, selectedRegion);
+      } else {
+        const decryptedCreds = await getDecryptedCredentials(credentials);
+        if (!decryptedCreds) throw new Error('Failed to decrypt credentials');
+        service = new AWSServiceWrapper(decryptedCreds, selectedRegion);
+      }
+      
       return service.getRegions();
     },
-    enabled: !!credentials,
+    enabled: isBackendMode || !!credentials,
     staleTime: 1000 * 60 * 60, // 1 hour
   });
 

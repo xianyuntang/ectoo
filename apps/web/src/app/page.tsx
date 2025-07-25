@@ -8,12 +8,13 @@ import { Toaster } from '@/components/ui/sonner';
 
 export default function Home() {
   const { credentials } = useStore();
+  const isBackendMode = process.env.NEXT_PUBLIC_USE_AWS_BACKEND === 'true';
 
   return (
     <div className="min-h-screen bg-background">
-      {credentials && <Header />}
+      {(credentials || isBackendMode) && <Header />}
 
-      {!credentials ? (
+      {!credentials && !isBackendMode ? (
         <div className="min-h-screen flex items-center justify-center p-4 bg-muted/30">
           <div className="w-full max-w-6xl mx-auto">
             <div className="text-center mb-12">

@@ -26,7 +26,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { AWSService, EC2Instance } from '@/lib/aws-service';
+import { EC2Instance } from '@/lib/aws-service';
+import { AWSServiceWrapper } from '@/lib/aws-service-wrapper';
 import useStore, { getDecryptedCredentials } from '@/store/useStore';
 import { cn } from '@/lib/utils';
 import ModifyInstanceTypeDialog from './modify-instance-type-dialog';
@@ -75,7 +76,8 @@ const getStatusConfig = (status: string) => {
 
 export default function InstancesView() {
   const { credentials, selectedRegion } = useStore();
-  const [awsService, setAwsService] = useState<AWSService | null>(null);
+  const [awsService, setAwsService] = useState<AWSServiceWrapper | null>(null);
+  const isBackendMode = process.env.NEXT_PUBLIC_USE_AWS_BACKEND === 'true';
   const [selectedInstance, setSelectedInstance] = useState<EC2Instance | null>(
     null,
   );
@@ -95,16 +97,21 @@ export default function InstancesView() {
   } = useQuery({
     queryKey: ['instances', selectedRegion],
     queryFn: async () => {
-      if (!credentials) throw new Error('No credentials');
+      if (!isBackendMode && !credentials) throw new Error('No credentials');
 
-      const decryptedCreds = await getDecryptedCredentials(credentials);
-      if (!decryptedCreds) throw new Error('Failed to decrypt credentials');
-
-      const service = new AWSService(decryptedCreds, selectedRegion);
+      let service: AWSServiceWrapper;
+      if (isBackendMode) {
+        service = new AWSServiceWrapper(undefined, selectedRegion);
+      } else {
+        const decryptedCreds = await getDecryptedCredentials(credentials);
+        if (!decryptedCreds) throw new Error('Failed to decrypt credentials');
+        service = new AWSServiceWrapper(decryptedCreds, selectedRegion);
+      }
+      
       setAwsService(service);
       return service.getInstances();
     },
-    enabled: !!credentials,
+    enabled: isBackendMode || !!credentials,
     refetchInterval: 30000,
   });
 

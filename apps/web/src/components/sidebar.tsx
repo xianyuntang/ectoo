@@ -26,9 +26,12 @@ interface SidebarProps {
 export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const { clearCredentials } = useStore();
   const [activeItem, setActiveItem] = useState('instances');
+  const isBackendMode = process.env.NEXT_PUBLIC_USE_AWS_BACKEND === 'true';
 
   const handleLogout = () => {
-    clearCredentials();
+    if (!isBackendMode) {
+      clearCredentials();
+    }
     window.location.reload();
   };
 
@@ -123,17 +126,19 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             {!collapsed && <span className="font-medium">Settings</span>}
           </button>
 
-          <button
-            onClick={handleLogout}
-            className={cn(
-              'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all',
-              'hover:bg-muted text-destructive',
-              collapsed && 'justify-center',
-            )}
-          >
-            <LogOut className="h-5 w-5 flex-shrink-0" />
-            {!collapsed && <span className="font-medium">Logout</span>}
-          </button>
+          {!isBackendMode && (
+            <button
+              onClick={handleLogout}
+              className={cn(
+                'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all',
+                'hover:bg-muted text-destructive',
+                collapsed && 'justify-center',
+              )}
+            >
+              <LogOut className="h-5 w-5 flex-shrink-0" />
+              {!collapsed && <span className="font-medium">Logout</span>}
+            </button>
+          )}
         </div>
       </div>
     </aside>

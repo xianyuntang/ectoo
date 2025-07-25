@@ -32,6 +32,7 @@ type CredentialsFormData = z.infer<typeof credentialsSchema>;
 export default function CredentialsForm() {
   const [showSecret, setShowSecret] = useState(false);
   const { setCredentials, error } = useStore();
+  const isBackendMode = process.env.NEXT_PUBLIC_USE_AWS_BACKEND === 'true';
 
   const {
     register,
@@ -44,6 +45,28 @@ export default function CredentialsForm() {
   const onSubmit = async (data: CredentialsFormData) => {
     await setCredentials(data);
   };
+
+  if (isBackendMode) {
+    return (
+      <Card className="w-full max-w-lg mx-auto shadow-lg">
+        <CardHeader className="space-y-1 pb-8">
+          <CardTitle className="text-2xl font-semibold">
+            AWS Backend Mode
+          </CardTitle>
+          <CardDescription className="text-base">
+            This application is running in backend mode. AWS credentials are configured on the server.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Alert>
+            <AlertDescription>
+              You don&apos;t need to provide AWS credentials. The server is configured with AWS access.
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full max-w-lg mx-auto shadow-lg">

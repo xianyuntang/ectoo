@@ -11,6 +11,10 @@ const nextConfig = {
   // See: https://nx.dev/recipes/next/next-config-setup
   nx: {},
   output: 'standalone',
+  env: {
+    // Feature flag to determine if AWS operations should use backend API
+    NEXT_PUBLIC_USE_AWS_BACKEND: process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY ? 'true' : 'false',
+  },
 };
 
 const plugins = [
