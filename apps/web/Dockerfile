@@ -1,5 +1,5 @@
 # Build stage
-FROM node:22.14.0-alpine AS builder
+FROM node:22.14.0-slim AS builder
 
 # Set working directory
 WORKDIR /app
@@ -29,16 +29,16 @@ ENV NX_VERBOSE_LOGGING=false
 RUN npm run build
 
 # Production stage
-FROM node:22.14.0-alpine AS runner
+FROM node:22.14.0-slim AS runner
 
 WORKDIR /app
 
 # Install dumb-init for proper signal handling
-RUN apk add --no-cache dumb-init
+RUN apt-get update && apt-get install -y --no-install-recommends dumb-init && rm -rf /var/lib/apt/lists/*
 
 # Create a non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
+RUN groupadd -g 1001 nodejs
+RUN useradd -m -u 1001 -g nodejs nextjs
 
 # Copy built application
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
