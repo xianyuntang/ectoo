@@ -122,7 +122,10 @@ export default function InstancesView() {
     },
     onSuccess: () => {
       toast.success('Instance start command sent');
-      refetch(); // Refetch immediately
+      // Invalidate and refetch immediately
+      queryClient.invalidateQueries({
+        queryKey: ['instances', selectedRegion],
+      });
     },
     onError: (error) => {
       toast.error(`Start failed: ${error.message}`);
@@ -136,7 +139,10 @@ export default function InstancesView() {
     },
     onSuccess: () => {
       toast.success('Instance stop command sent');
-      refetch(); // Refetch immediately
+      // Invalidate and refetch immediately
+      queryClient.invalidateQueries({
+        queryKey: ['instances', selectedRegion],
+      });
     },
     onError: (error) => {
       toast.error(`Stop failed: ${error.message}`);
